@@ -49,9 +49,7 @@ fun MyPageScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    // 프로필 이모지 선택 sheet 실행 여부
     var showEmojiSheet by remember { mutableStateOf(false) }
-    // 닉네임 변경 다이얼로그 실행 여부
     var showNicknameDialog by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -60,8 +58,7 @@ fun MyPageScreen(
     Scaffold(
         containerColor = ScreenBackground,
         topBar = {
-            // 설정 아이콘 제거 -> 우측 액션 없음
-            CommonTopBar(title = "마이페이지")
+            CommonTopBar(title = "마이페이지", containerColor = ScreenBackground)
         }
     ) { innerPadding ->
         Column(
@@ -73,7 +70,6 @@ fun MyPageScreen(
         ) {
             Spacer(modifier = Modifier.height(48.dp))
 
-            // 프로필 영역 (사진 + 닉네임 + 아이디)
             ProfileCard(
                 profileEmoji = ProfileEmojiOptions[uiState.profileEmojiIndex],
                 nickname = uiState.nickname,
@@ -84,7 +80,6 @@ fun MyPageScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            // 통계 카드 (연속 도전 제거 -> 도전한 버킷 / 완료한 버킷)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -182,7 +177,6 @@ private fun ProfileEmojiSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 4개씩 줄바꿈하여 이모지 그리드 표시
             val rows = emojiOptions.chunked(4)
             rows.forEachIndexed { rowIndex, rowEmojis ->
                 Row(

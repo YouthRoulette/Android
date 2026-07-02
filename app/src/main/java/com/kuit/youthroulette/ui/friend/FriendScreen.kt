@@ -49,9 +49,7 @@ fun FriendScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
-    // 선택된 탭 (화면 로컬 상태)
     var selectedTab by rememberSaveable { mutableStateOf(FriendTab.LIST) }
-    // 친구 추가 sheet 실행 여부
     var showAddSheet by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -62,8 +60,8 @@ fun FriendScreen(
         topBar = {
             CommonTopBar(
                 title = "친구",
+                containerColor = ScreenBackground,
                 actions = {
-                    // 친구 추가 버튼
                     AddFriendAction(onClick = { showAddSheet = true })
                 }
             )
@@ -75,7 +73,6 @@ fun FriendScreen(
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp, vertical = 20.dp)
         ) {
-            // 친구 / 소식 탭
             FriendSegmentedTab(
                 selectedTab = selectedTab,
                 onTabSelected = { selectedTab = it }
@@ -83,7 +80,6 @@ fun FriendScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 친구 요청 배너
             if (uiState.pendingRequests.isNotEmpty()) {
                 FriendRequestBanner(
                     request = uiState.pendingRequests.first(),
@@ -105,7 +101,10 @@ fun FriendScreen(
 
             when (selectedTab) {
                 FriendTab.LIST -> FriendListTab(friends = uiState.friends)
-                FriendTab.NEWS -> FriendNewsTab(feeds = uiState.feeds)
+                FriendTab.NEWS -> FriendNewsTab(
+                    feeds = uiState.feeds,
+                    onLikeClick = { feedId -> viewModel.toggleLike(feedId) }
+                )
             }
         }
     }
@@ -244,7 +243,6 @@ private fun AddFriendSheet(
     onDismiss: () -> Unit,
     onSend: (userId: String) -> Unit
 ) {
-    // 입력한 친구 아이디 (@ 없이 입력)
     var inputId by remember { mutableStateOf("") }
 
     ModalBottomSheet(
@@ -271,7 +269,6 @@ private fun AddFriendSheet(
 
             OutlinedTextField(
                 value = inputId,
-                // @ 는 생략하고 로그인 아이디만 입력받음
                 onValueChange = { inputId = it.removePrefix("@") },
                 placeholder = { Text("예: youth_friend") },
                 singleLine = true,

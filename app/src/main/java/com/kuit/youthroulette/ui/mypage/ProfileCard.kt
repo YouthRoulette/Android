@@ -33,7 +33,6 @@ fun ProfileCard(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // 프로필 사진 (이모지) - 눌러서 변경
         Box(
             modifier = Modifier
                 .size(120.dp)
@@ -45,38 +44,27 @@ fun ProfileCard(
             Text(text = profileEmoji, fontSize = 56.sp)
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Text(
-            text = "이모지를 눌러 프로필을 바꿔보세요",
-            fontSize = 12.sp,
-            color = MutedText
-        )
-
         Spacer(modifier = Modifier.height(36.dp))
 
-        // 닉네임 + 닉네임 변경(연필) 메뉴
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // 닉네임 글자 왼쪽에 닉네임 변경 메뉴 (연필 이모지)
-            Text(
-                text = "✏️",
-                fontSize = 18.sp,
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .clickable(onClick = onEditNickname)
-                    .padding(6.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = nickname,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "✏️",
+                fontSize = 14.sp,
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .clickable(onClick = onEditNickname)
+                    .padding(4.dp)
+            )
         }
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 아이디는 @ 없이 표시
         Text(
             text = userId,
             fontSize = 14.sp,

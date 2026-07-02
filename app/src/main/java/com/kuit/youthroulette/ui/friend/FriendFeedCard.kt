@@ -2,6 +2,7 @@ package com.kuit.youthroulette.ui.friend
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,7 +24,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun FriendFeedCard(feed: FeedUiModel) {
+fun FriendFeedCard(
+    feed: FeedUiModel,
+    onLikeClick: () -> Unit
+) {
     val thumbColor = FeedThumbPalette[(feed.id - 1).coerceAtLeast(0) % FeedThumbPalette.size]
 
     Row(
@@ -35,7 +39,6 @@ fun FriendFeedCard(feed: FeedUiModel) {
             .padding(14.dp),
         verticalAlignment = Alignment.Top
     ) {
-        // 작성자 프로필
         Box(
             modifier = Modifier
                 .size(36.dp)
@@ -60,13 +63,25 @@ fun FriendFeedCard(feed: FeedUiModel) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 공감(하트)만 표시 (댓글 기능 제거)
-            Text(text = "🧡 ${feed.likeCount}", fontSize = 12.sp, color = MutedText)
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(onClick = onLikeClick)
+                    .padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = if (feed.isLiked) "🧡" else "🤍", fontSize = 14.sp)
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "${feed.likeCount}",
+                    fontSize = 12.sp,
+                    color = if (feed.isLiked) AccentOrange else MutedText
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(10.dp))
 
-        // 완료 인증 사진 대신 친구가 완료한 버킷의 이모지 표시
         Box(
             modifier = Modifier
                 .size(48.dp)

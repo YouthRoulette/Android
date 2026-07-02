@@ -7,10 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun FriendNewsTab(feeds: List<FeedUiModel>) {
+fun FriendNewsTab(
+    feeds: List<FeedUiModel>,
+    onLikeClick: (Int) -> Unit
+) {
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         items(feeds, key = { it.id }) { feed ->
-            FriendFeedCard(feed = feed)
+            FriendFeedCard(feed = feed, onLikeClick = { onLikeClick(feed.id) })
         }
     }
 }

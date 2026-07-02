@@ -15,7 +15,6 @@ class FriendViewModel : ViewModel() {
                 FriendUiModel(id = 3, name = "영희", avatarEmoji = "🙂"),
                 FriendUiModel(id = 4, name = "한우", avatarEmoji = "🙂")
             ),
-            // 소식 리스트: 우측 썸네일은 각 친구가 완료한 버킷의 이모지로 표시
             feeds = listOf(
                 FeedUiModel(
                     id = 1,
@@ -52,7 +51,6 @@ class FriendViewModel : ViewModel() {
     )
     val uiState: StateFlow<FriendUiState> = _uiState.asStateFlow()
 
-    // 친구 요청 수락 -> 요청 제거 + 친구 목록에 추가
     fun acceptRequest(request: FriendRequestUiModel) {
         _uiState.update { state ->
             val newId = (state.friends.maxOfOrNull { it.id } ?: 0) + 1
@@ -65,7 +63,22 @@ class FriendViewModel : ViewModel() {
         }
     }
 
-    // 친구 요청 거절 -> 요청만 제거
+    fun toggleLike(feedId: Int) {
+        _uiState.update { state ->
+            state.copy(
+                feeds = state.feeds.map { feed ->
+                    if (feed.id != feedId) {
+                        feed
+                    } else if (feed.isLiked) {
+                        feed.copy(isLiked = false, likeCount = feed.likeCount - 1)
+                    } else {
+                        feed.copy(isLiked = true, likeCount = feed.likeCount + 1)
+                    }
+                }
+            )
+        }
+    }
+
     fun rejectRequest(request: FriendRequestUiModel) {
         _uiState.update { state ->
             state.copy(pendingRequests = state.pendingRequests.filterNot { it.id == request.id })

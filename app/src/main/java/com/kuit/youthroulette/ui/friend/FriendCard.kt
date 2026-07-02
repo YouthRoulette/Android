@@ -42,7 +42,6 @@ fun FriendCard(friend: FriendUiModel) {
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // 이름만 표시 (상태 메시지 제거)
         Text(
             text = friend.name,
             fontSize = 16.sp,
