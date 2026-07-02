@@ -1,6 +1,7 @@
 package com.kuit.youthroulette.ui.navigation
 
 object Routes {
+    const val ONBOARDING = "onboarding"
     const val ROULETTE = "roulette"
     const val BUCKET = "bucket"
     const val ADD_BUCKET = "add_bucket"
