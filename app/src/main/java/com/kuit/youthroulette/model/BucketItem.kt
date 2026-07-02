@@ -13,5 +13,7 @@ data class BucketItem(
 
     val status: BucketStatus = BucketStatus.NOT_STARTED,
 
-    val taggedFriendNames: List<String> = emptyList()
+    val taggedFriendNames: List<String> = emptyList(),
+
+    val emoji: String = "🎯"
 )
