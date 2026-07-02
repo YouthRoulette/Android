@@ -60,7 +60,17 @@ fun AppNavHost() {
             }
 
             composable(Routes.ROULETTE) {
-                RouletteScreen()
+                RouletteScreen(
+                    onNavigateToBucket = {
+                        navController.navigate(Routes.BUCKET) {
+                            popUpTo(Routes.ROULETTE) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
             }
 
             composable(Routes.BUCKET) {

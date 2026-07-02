@@ -59,6 +59,7 @@ private const val SpinDurationMs = 5000
 fun RouletteWheel(
     items: List<BucketItem>,
     modifier: Modifier = Modifier,
+    hasActiveChallenge: Boolean = false,
     onSpinningChange: (Boolean) -> Unit = {},
     onResult: (BucketItem) -> Unit = {}
 ) {
@@ -68,8 +69,9 @@ fun RouletteWheel(
     val rotation = remember { Animatable(0f) }
     var isSpinning by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    // 버킷이 하나뿐이면 결과가 항상 정해져 있으므로 스핀을 막는다
-    val canSpin = items.size > 1
+    // 버킷이 하나뿐이면 결과가 항상 정해져 있으므로 스핀을 막고,
+    // 이미 도전 중인 버킷이 있으면(동시에 하나만 도전 가능) 스핀을 막는다
+    val canSpin = items.size > 1 && !hasActiveChallenge
 
     fun spin() {
         if (isSpinning || !canSpin) return
@@ -194,6 +196,7 @@ fun RouletteWheel(
         CenterStartButton(
             canSpin = canSpin,
             isSpinning = isSpinning,
+            hasActiveChallenge = hasActiveChallenge,
             onClick = { spin() }
         )
     }
@@ -203,6 +206,7 @@ fun RouletteWheel(
 private fun BoxScope.CenterStartButton(
     canSpin: Boolean,
     isSpinning: Boolean,
+    hasActiveChallenge: Boolean,
     onClick: () -> Unit
 ) {
     Box(
@@ -223,12 +227,14 @@ private fun BoxScope.CenterStartButton(
             )
             Text(
                 text = when {
+                    hasActiveChallenge -> "도전 중인 버킷이 있어요"
                     !canSpin -> "버킷이 더 필요해요"
                     isSpinning -> "돌아가는 중"
                     else -> "눌러서 돌리기"
                 },
                 color = Color.White,
-                fontSize = 10.sp
+                fontSize = 10.sp,
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -250,6 +256,18 @@ private fun RouletteWheelPreview() {
 private fun RouletteWheelSingleItemPreview() {
     RouletteWheel(
         items = listOf(BucketItem(id = 1, title = "혼자 여행 가기")),
+        modifier = Modifier
+            .size(320.dp)
+            .padding(16.dp)
+    )
+}
+
+@Composable
+@Preview(showBackground = true, name = "도전 중 버킷 있음 (스핀 비활성화)")
+private fun RouletteWheelActiveChallengePreview() {
+    RouletteWheel(
+        items = MockData.bucketItems.filter { it.status == BucketStatus.NOT_STARTED },
+        hasActiveChallenge = true,
         modifier = Modifier
             .size(320.dp)
             .padding(16.dp)

@@ -13,9 +13,17 @@ object BucketRepository {
     }
 
     fun complete(id: Int) {
+        updateStatus(id, BucketStatus.COMPLETED)
+    }
+
+    fun startChallenge(id: Int) {
+        updateStatus(id, BucketStatus.IN_PROGRESS)
+    }
+
+    private fun updateStatus(id: Int, status: BucketStatus) {
         val index = bucketItems.indexOfFirst { it.id == id }
         if (index != -1) {
-            bucketItems[index] = bucketItems[index].copy(status = BucketStatus.COMPLETED)
+            bucketItems[index] = bucketItems[index].copy(status = status)
         }
     }
 }

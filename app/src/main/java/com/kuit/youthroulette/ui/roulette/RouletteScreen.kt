@@ -33,78 +33,100 @@ private val BannerBackground = Color(0xFFFCEFAE)
 private val BannerTextColor = Color(0xFF7A6A2E)
 
 @Composable
-fun RouletteScreen() {
+fun RouletteScreen(
+    onNavigateToBucket: () -> Unit = {}
+) {
     // 룰렛에는 미 완료 상태인 버킷만 들어간다. BucketRepository.bucketItems를 읽는 순간
     // 스냅샷 상태가 구독되므로, 다른 화면에서 상태를 바꾸면 여기도 자동으로 재구성된다.
     val rouletteItems = BucketRepository.bucketItems.filter { it.status == BucketStatus.NOT_STARTED }
+    // 도전 중인 버킷은 동시에 하나만 있어야 하므로, 이미 있으면 룰렛을 돌릴 수 없다
+    val hasActiveChallenge = BucketRepository.bucketItems.any { it.status == BucketStatus.IN_PROGRESS }
     var uiState by remember { mutableStateOf(RouletteUiState()) }
+    val selectedBucket = uiState.selectedBucket
 
     Scaffold(
         topBar = { CommonTopBar(title = "청춘룰렛") }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "오늘의 버킷을\n돌려볼까요?",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "룰렛을 돌려 오늘의 도전을 정해보세요!",
-                fontSize = 15.sp,
-                color = SubtitleColor,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            if (rouletteItems.isEmpty()) {
-                Text(
-                    text = "미 완료 버킷을 추가하면\n룰렛이 채워져요!",
-                    fontSize = 14.sp,
-                    color = SubtitleColor,
-                    textAlign = TextAlign.Center
-                )
-            } else {
-                RouletteWheel(
-                    items = rouletteItems,
-                    modifier = Modifier.fillMaxWidth(),
-                    onSpinningChange = { spinning -> uiState = uiState.copy(isSpinning = spinning) },
-                    onResult = { selected -> uiState = uiState.copy(selectedBucket = selected) }
-                )
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Box(
+        if (selectedBucket != null) {
+            RouletteResultCard(
+                bucket = selectedBucket,
+                onStartChallenge = {
+                    BucketRepository.startChallenge(selectedBucket.id)
+                    uiState = RouletteUiState()
+                    onNavigateToBucket()
+                },
+                onRespin = { uiState = uiState.copy(selectedBucket = null) },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(BannerBackground, RoundedCornerShape(20.dp))
-                    .padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(24.dp)
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (uiState.isSpinning) {
-                        "행운을 빌어요! 🍀"
-                    } else {
-                        "🎡 룰렛은 내가 추가한 버킷리스트로 구성돼요!"
-                    },
-                    color = BannerTextColor,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
+                    text = "오늘의 버킷을\n돌려볼까요?",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "룰렛을 돌려 오늘의 도전을 정해보세요!",
+                    fontSize = 15.sp,
+                    color = SubtitleColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                if (rouletteItems.isEmpty()) {
+                    Text(
+                        text = "미 완료 버킷을 추가하면\n룰렛이 채워져요!",
+                        fontSize = 14.sp,
+                        color = SubtitleColor,
+                        textAlign = TextAlign.Center
+                    )
+                } else {
+                    RouletteWheel(
+                        items = rouletteItems,
+                        modifier = Modifier.fillMaxWidth(),
+                        hasActiveChallenge = hasActiveChallenge,
+                        onSpinningChange = { spinning -> uiState = uiState.copy(isSpinning = spinning) },
+                        onResult = { selected -> uiState = uiState.copy(selectedBucket = selected) }
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(BannerBackground, RoundedCornerShape(20.dp))
+                        .padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (uiState.isSpinning) {
+                            "행운을 빌어요! 🍀"
+                        } else {
+                            "🎡 룰렛은 내가 추가한 버킷리스트로 구성돼요!"
+                        },
+                        color = BannerTextColor,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
