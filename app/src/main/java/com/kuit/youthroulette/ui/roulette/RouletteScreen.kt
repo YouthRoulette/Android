@@ -12,6 +12,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,6 +37,7 @@ fun RouletteScreen() {
     // 룰렛에는 미 완료 상태인 버킷만 들어간다. BucketRepository.bucketItems를 읽는 순간
     // 스냅샷 상태가 구독되므로, 다른 화면에서 상태를 바꾸면 여기도 자동으로 재구성된다.
     val rouletteItems = BucketRepository.bucketItems.filter { it.status == BucketStatus.NOT_STARTED }
+    var uiState by remember { mutableStateOf(RouletteUiState()) }
 
     Scaffold(
         topBar = { CommonTopBar(title = "청춘룰렛") }
@@ -74,7 +79,9 @@ fun RouletteScreen() {
             } else {
                 RouletteWheel(
                     items = rouletteItems,
-                    modifier = Modifier.fillMaxWidth(0.85f)
+                    modifier = Modifier.fillMaxWidth(),
+                    onSpinningChange = { spinning -> uiState = uiState.copy(isSpinning = spinning) },
+                    onResult = { selected -> uiState = uiState.copy(selectedBucket = selected) }
                 )
             }
 
@@ -88,7 +95,11 @@ fun RouletteScreen() {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "🎡 룰렛은 내가 추가한 버킷리스트로 구성돼요!",
+                    text = if (uiState.isSpinning) {
+                        "행운을 빌어요! 🍀"
+                    } else {
+                        "🎡 룰렛은 내가 추가한 버킷리스트로 구성돼요!"
+                    },
                     color = BannerTextColor,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,

@@ -59,6 +59,7 @@ private const val SpinDurationMs = 5000
 fun RouletteWheel(
     items: List<BucketItem>,
     modifier: Modifier = Modifier,
+    onSpinningChange: (Boolean) -> Unit = {},
     onResult: (BucketItem) -> Unit = {}
 ) {
     if (items.isEmpty()) return
@@ -73,6 +74,7 @@ fun RouletteWheel(
     fun spin() {
         if (isSpinning || !canSpin) return
         isSpinning = true
+        onSpinningChange(true)
         val targetIndex = Random.nextInt(items.size)
         scope.launch {
             // 포인터는 12시 방향에 고정되어 있으므로, targetIndex 조각의 중앙이
@@ -92,6 +94,7 @@ fun RouletteWheel(
                 )
             )
             isSpinning = false
+            onSpinningChange(false)
             onResult(items[targetIndex])
         }
     }
