@@ -12,10 +12,6 @@ internal val CardBorderColor = Color(0xFFF0EDE8)
 internal val SelectedBorderColor = Color(0xFF2B2B2B)
 internal val EmojiSlotBackground = Color(0xFFF4F2EF)
 
-val ProfileEmojiOptions = listOf(
-    "🙂", "😎", "🥳", "🐣", "🐱", "🦊", "🌟", "🍀"
-)
-
 data class MyPageUiState(
     val nickname: String = "청춘이",
     val userId: String = "youth_mate",

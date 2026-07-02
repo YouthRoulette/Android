@@ -40,7 +40,7 @@ data class FeedUiModel(
 )
 
 data class FriendRequestUiModel(
-    val id: String,
+    val id: Int,
     val name: String,
     val userId: String
 )

@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.kuit.youthroulette.data.MockData
 import com.kuit.youthroulette.ui.component.CommonTopBar
 import kotlinx.coroutines.launch
 
@@ -71,7 +72,7 @@ fun MyPageScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             ProfileCard(
-                profileEmoji = ProfileEmojiOptions[uiState.profileEmojiIndex],
+                profileEmoji = MockData.profileEmojiOptions[uiState.profileEmojiIndex],
                 nickname = uiState.nickname,
                 userId = uiState.userId,
                 onProfileClick = { showEmojiSheet = true },
@@ -102,7 +103,7 @@ fun MyPageScreen(
         ProfileEmojiSheet(
             sheetState = sheetState,
             selectedIndex = uiState.profileEmojiIndex,
-            emojiOptions = ProfileEmojiOptions,
+            emojiOptions = MockData.profileEmojiOptions,
             onSelect = { index ->
                 viewModel.changeProfileEmoji(index)
                 coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
