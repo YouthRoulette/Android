@@ -15,5 +15,7 @@ data class BucketItem(
 
     val taggedFriendNames: List<String> = emptyList(),
 
-    val emoji: String = "🎯"
+    val emojiIndex: Int = 0,
+
+    val colorIndex: Int = 0
 )
