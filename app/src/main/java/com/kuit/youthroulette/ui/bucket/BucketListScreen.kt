@@ -37,7 +37,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kuit.youthroulette.data.MockData
+import com.kuit.youthroulette.data.BucketRepository
 import com.kuit.youthroulette.model.BucketItem
 import com.kuit.youthroulette.model.BucketStatus
 import com.kuit.youthroulette.ui.component.CommonTopBar
@@ -93,8 +93,8 @@ private enum class BucketFilter(val label: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BucketListScreen() {
-    // 버킷 리스트 아이템 갯수
-    var bucketItems by remember { mutableStateOf(MockData.bucketItems) }
+    // 버킷 리스트 아이템 목록 (여러 화면이 공유하는 단일 소스)
+    val bucketItems = BucketRepository.bucketItems
     // 선택된 탭
     var selectedFilter by remember { mutableStateOf(BucketFilter.NOT_STARTED) }
     // 버킷리스트 추가 sheet 실행 여부
@@ -163,11 +163,7 @@ fun BucketListScreen() {
                         item = item,
                         emoji = EmojiOptions[item.emojiIndex % EmojiOptions.size],
                         iconBackgroundColor = IconBackgroundPalette[item.colorIndex % IconBackgroundPalette.size],
-                        onComplete = {
-                            bucketItems = bucketItems.map {
-                                if (it.id == item.id) it.copy(status = BucketStatus.COMPLETED) else it
-                            }
-                        }
+                        onComplete = { BucketRepository.complete(item.id) }
                     )
                 }
             }
@@ -186,12 +182,14 @@ fun BucketListScreen() {
             },
             onAdd = { title, emojiIndex, colorIndex ->
                 val newId = (bucketItems.maxOfOrNull { it.id } ?: 0) + 1
-                bucketItems = bucketItems + BucketItem(
-                    id = newId,
-                    title = title,
-                    emojiIndex = emojiIndex,
-                    colorIndex = colorIndex,
-                    status = BucketStatus.NOT_STARTED
+                BucketRepository.add(
+                    BucketItem(
+                        id = newId,
+                        title = title,
+                        emojiIndex = emojiIndex,
+                        colorIndex = colorIndex,
+                        status = BucketStatus.NOT_STARTED
+                    )
                 )
                 coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
                     if (!sheetState.isVisible) showAddSheet = false

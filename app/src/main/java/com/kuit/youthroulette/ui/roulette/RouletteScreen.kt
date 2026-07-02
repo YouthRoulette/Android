@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kuit.youthroulette.data.BucketRepository
+import com.kuit.youthroulette.model.BucketStatus
 import com.kuit.youthroulette.ui.component.CommonTopBar
 
 private val SubtitleColor = Color(0xFF9C9C9C)
@@ -28,6 +30,10 @@ private val BannerTextColor = Color(0xFF7A6A2E)
 
 @Composable
 fun RouletteScreen() {
+    // 룰렛에는 미 완료 상태인 버킷만 들어간다. BucketRepository.bucketItems를 읽는 순간
+    // 스냅샷 상태가 구독되므로, 다른 화면에서 상태를 바꾸면 여기도 자동으로 재구성된다.
+    val rouletteItems = BucketRepository.bucketItems.filter { it.status == BucketStatus.NOT_STARTED }
+
     Scaffold(
         topBar = { CommonTopBar(title = "청춘룰렛") }
     ) { innerPadding ->
@@ -58,7 +64,19 @@ fun RouletteScreen() {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // 룰렛 컴포넌트는 이후 별도로 구현
+            if (rouletteItems.isEmpty()) {
+                Text(
+                    text = "미 완료 버킷을 추가하면\n룰렛이 채워져요!",
+                    fontSize = 14.sp,
+                    color = SubtitleColor,
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                RouletteWheel(
+                    items = rouletteItems,
+                    modifier = Modifier.fillMaxWidth(0.85f)
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
