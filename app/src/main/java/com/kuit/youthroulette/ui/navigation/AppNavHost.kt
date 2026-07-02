@@ -1,5 +1,6 @@
 package com.kuit.youthroulette.ui.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -34,6 +35,7 @@ fun AppNavHost() {
     )
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = {
             if (showBottomBar) {
                 BottomNavBar(
@@ -72,11 +74,28 @@ fun AppNavHost() {
             }
 
             composable(Routes.RESULT) {
-                ResultScreen()
+                ResultScreen(
+                    onProofClick = { bucketId ->
+                        navController.navigate(Routes.proof(bucketId))
+                    }
+                )
             }
 
-            composable(Routes.PROOF) {
-                ProofScreen()
+            composable(Routes.PROOF) { backStackEntry ->
+                val bucketId = backStackEntry.arguments
+                    ?.getString("bucketId")
+                    ?.toIntOrNull()
+                    ?: 0
+
+                ProofScreen(
+                    bucketId = bucketId,
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onProofComplete = {
+                        navController.popBackStack()
+                    }
+                )
             }
 
             composable(Routes.FRIEND) {
