@@ -11,7 +11,7 @@ object UserRepository {
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
     fun saveUser(
-        id: Int,
+        id: String,
         nickname: String,
         profileImageUrl: String? = null
     ) {

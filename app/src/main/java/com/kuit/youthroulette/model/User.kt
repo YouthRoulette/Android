@@ -2,7 +2,7 @@ package com.kuit.youthroulette.model
 
 data class User(
 
-    val id: Int,
+    val id: String,
 
     val nickname: String,
 
