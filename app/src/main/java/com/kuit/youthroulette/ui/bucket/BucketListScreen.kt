@@ -18,18 +18,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,31 +41,31 @@ import com.kuit.youthroulette.data.MockData
 import com.kuit.youthroulette.model.BucketItem
 import com.kuit.youthroulette.model.BucketStatus
 import com.kuit.youthroulette.ui.component.CommonTopBar
+import kotlinx.coroutines.launch
 
+// 미 완료 버킷 배너 색상(배경, 글씨, 갯수)
 private val BannerBackground = Color(0xFFFDEEE3)
 private val BannerTextColor = Color(0xFF8A5A34)
 private val BannerHighlightColor = Color(0xFFEE8A3D)
 
-private val TabRowBackground = Color(0xFFF4F2EF)
-private val SelectedTabBackground = Color(0xFFFFFFFF)
-private val SelectedTabTextColor = Color(0xFF2B2B2B)
-private val UnselectedTabTextColor = Color(0xFFA6A29C)
-
-private val CardBackground = Color(0xFFFFFFFF)
+// 카드 테두리 색상
 private val CardBorderColor = Color(0xFFF0EDE8)
+// 도전 중 카드 색상(배경, 테두리)
 private val InProgressBackground = Color(0xFFF3E7DC)
 private val InProgressBorderColor = Color(0xFFDCC0A4)
+// 완료 카드 색상(배경, 테두리)
 private val CompletedBackground = Color(0xFFDFF5E3)
 private val CompletedBorderColor = Color(0xFFBBE6C6)
 
-private val NotStartedChipBackground = Color(0xFFF1EFEC)
-private val NotStartedChipTextColor = Color(0xFF6E6A64)
+// 도전 중 색상(배경, 글씨)
 private val InProgressChipBackground = Color(0xFFE4CBAE)
 private val InProgressChipTextColor = Color(0xFF7A4B24)
+// 완료 색상(배경, 글씨)
 private val CompletedChipBackground = Color(0xFFBFEACB)
 private val CompletedChipTextColor = Color(0xFF25793D)
 
-private val IconBackgroundPalette = listOf(
+// 버킷리스트 아이콘 색상(인덱스로 불러옴)
+val IconBackgroundPalette = listOf(
     Color(0xFFD6D2F0),
     Color(0xFFF6D9C4),
     Color(0xFFF2C79A),
@@ -72,31 +76,61 @@ private val IconBackgroundPalette = listOf(
     Color(0xFFD7E8B8)
 )
 
+// 버킷리스트 아이콘 이모지(인덱스로 불러옴)
+val EmojiOptions = listOf(
+    "🧺", "🌅", "⛺", "🍗", "🌊", "🪂", "🎒", "🌌"
+)
+// 최대 가능한 미 완료 버킷리스트 갯수
 private const val ROULETTE_SLOT_CAPACITY = 8
 
+// 미 완료/도전 중/완료
 private enum class BucketFilter(val label: String) {
-    ALL("전체"),
+    NOT_STARTED("미 완료"),
     IN_PROGRESS("도전 중"),
     COMPLETED("완료")
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BucketListScreen() {
+    // 버킷 리스트 아이템 갯수
     var bucketItems by remember { mutableStateOf(MockData.bucketItems) }
-    var selectedFilter by remember { mutableStateOf(BucketFilter.ALL) }
+    // 선택된 탭
+    var selectedFilter by remember { mutableStateOf(BucketFilter.NOT_STARTED) }
+    // 버킷리스트 추가 sheet 실행 여부
+    var showAddSheet by remember { mutableStateOf(false) }
+    // 추가 sheet 상태
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val coroutineScope = rememberCoroutineScope()
 
+    // 미 완료 갯수
     val notStartedCount = bucketItems.count { it.status == BucketStatus.NOT_STARTED }
+    // 도전 중 갯수
     val inProgressCount = bucketItems.count { it.status == BucketStatus.IN_PROGRESS }
+    // 완료 갯수
     val completedCount = bucketItems.count { it.status == BucketStatus.COMPLETED }
-
+    // 남은 미 완료 갯수가 max값을 넘어서는지 아닌지
+    val isNotStartedFull = notStartedCount >= ROULETTE_SLOT_CAPACITY
+    // 선택된 탭의 아이템들
     val filteredItems = when (selectedFilter) {
-        BucketFilter.ALL -> bucketItems
+        BucketFilter.NOT_STARTED -> bucketItems.filter { it.status == BucketStatus.NOT_STARTED }
         BucketFilter.IN_PROGRESS -> bucketItems.filter { it.status == BucketStatus.IN_PROGRESS }
         BucketFilter.COMPLETED -> bucketItems.filter { it.status == BucketStatus.COMPLETED }
     }
 
     Scaffold(
-        topBar = { CommonTopBar(title = "버킷리스트") }
+        topBar = {
+            CommonTopBar(
+                title = "버킷리스트",
+                actions = {
+                    // 버킷리스트 추가 버튼
+                    AddBucketAction(
+                        enabled = !isNotStartedFull,
+                        onClick = { showAddSheet = true }
+                    )
+                }
+            )
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -104,13 +138,15 @@ fun BucketListScreen() {
                 .padding(innerPadding)
                 .padding(horizontal = 24.dp, vertical = 24.dp)
         ) {
+            // 미 완료 버킷을 알려주는 배너
             NotStartedBanner(notStartedCount = notStartedCount)
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // 버킷리스트 필터 탭
             BucketFilterTabs(
                 selectedFilter = selectedFilter,
-                allCount = bucketItems.size,
+                notStartedCount = notStartedCount,
                 inProgressCount = inProgressCount,
                 completedCount = completedCount,
                 onSelect = { selectedFilter = it }
@@ -118,13 +154,15 @@ fun BucketListScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // 선택된 탭의 버킷리스트를 보여줌
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filteredItems, key = { it.id }) { item ->
                     BucketListItem(
                         item = item,
-                        iconBackgroundColor = IconBackgroundPalette[item.id % IconBackgroundPalette.size],
+                        emoji = EmojiOptions[item.emojiIndex % EmojiOptions.size],
+                        iconBackgroundColor = IconBackgroundPalette[item.colorIndex % IconBackgroundPalette.size],
                         onComplete = {
                             bucketItems = bucketItems.map {
                                 if (it.id == item.id) it.copy(status = BucketStatus.COMPLETED) else it
@@ -135,13 +173,61 @@ fun BucketListScreen() {
             }
         }
     }
+
+    if (showAddSheet) {
+        AddBucketSheet(
+            sheetState = sheetState,
+            iconColorPalette = IconBackgroundPalette,
+            emojiOptions = EmojiOptions,
+            onDismiss = {
+                coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) showAddSheet = false
+                }
+            },
+            onAdd = { title, emojiIndex, colorIndex ->
+                val newId = (bucketItems.maxOfOrNull { it.id } ?: 0) + 1
+                bucketItems = bucketItems + BucketItem(
+                    id = newId,
+                    title = title,
+                    emojiIndex = emojiIndex,
+                    colorIndex = colorIndex,
+                    status = BucketStatus.NOT_STARTED
+                )
+                coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
+                    if (!sheetState.isVisible) showAddSheet = false
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun AddBucketAction(
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .padding(end = 16.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 6.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "+ 추가",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = if (enabled) Color.Black else Color.LightGray
+        )
+    }
 }
 
 @Composable
 private fun NotStartedBanner(notStartedCount: Int) {
     val cappedCount = notStartedCount.coerceAtMost(ROULETTE_SLOT_CAPACITY)
     val statusMessage = if (cappedCount >= ROULETTE_SLOT_CAPACITY) {
-        "가득 찼어요 🎉"
+        "가득 찼어요"
     } else {
         "${ROULETTE_SLOT_CAPACITY - cappedCount}개 더 채울 수 있어요"
     }
@@ -155,7 +241,7 @@ private fun NotStartedBanner(notStartedCount: Int) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "미도전 버킷 ",
+                text = "미 완료 버킷 ",
                 fontSize = 14.sp,
                 color = BannerTextColor
             )
@@ -177,13 +263,13 @@ private fun NotStartedBanner(notStartedCount: Int) {
 @Composable
 private fun BucketFilterTabs(
     selectedFilter: BucketFilter,
-    allCount: Int,
+    notStartedCount: Int,
     inProgressCount: Int,
     completedCount: Int,
     onSelect: (BucketFilter) -> Unit
 ) {
     val counts = mapOf(
-        BucketFilter.ALL to allCount,
+        BucketFilter.NOT_STARTED to notStartedCount,
         BucketFilter.IN_PROGRESS to inProgressCount,
         BucketFilter.COMPLETED to completedCount
     )
@@ -191,7 +277,7 @@ private fun BucketFilterTabs(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(TabRowBackground, RoundedCornerShape(16.dp))
+            .background(Color.LightGray, RoundedCornerShape(16.dp))
             .padding(4.dp)
     ) {
         BucketFilter.entries.forEach { filter ->
@@ -200,7 +286,7 @@ private fun BucketFilterTabs(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (selected) SelectedTabBackground else Color.Transparent)
+                    .background(if (selected) Color.White else Color.Transparent)
                     .clickable { onSelect(filter) }
                     .padding(vertical = 10.dp),
                 contentAlignment = Alignment.Center
@@ -209,7 +295,7 @@ private fun BucketFilterTabs(
                     text = "${filter.label} ${counts[filter] ?: 0}",
                     fontSize = 14.sp,
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                    color = if (selected) SelectedTabTextColor else UnselectedTabTextColor
+                    color = if (selected) Color.Black else Color.Gray
                 )
             }
         }
@@ -219,11 +305,12 @@ private fun BucketFilterTabs(
 @Composable
 private fun BucketListItem(
     item: BucketItem,
+    emoji: String,
     iconBackgroundColor: Color,
     onComplete: () -> Unit
 ) {
     val background = when (item.status) {
-        BucketStatus.NOT_STARTED -> CardBackground
+        BucketStatus.NOT_STARTED -> Color.White
         BucketStatus.IN_PROGRESS -> InProgressBackground
         BucketStatus.COMPLETED -> CompletedBackground
     }
@@ -248,7 +335,7 @@ private fun BucketListItem(
                 .background(iconBackgroundColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = item.emoji, fontSize = 18.sp)
+            Text(text = emoji, fontSize = 18.sp)
         }
 
         Spacer(modifier = Modifier.width(12.dp))
@@ -257,6 +344,7 @@ private fun BucketListItem(
             text = item.title,
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
+            textDecoration = if (item.status == BucketStatus.COMPLETED) TextDecoration.LineThrough else TextDecoration.None,
             modifier = Modifier.weight(1f)
         )
 
@@ -274,11 +362,11 @@ private fun BucketStatusChip(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .background(NotStartedChipBackground)
+                    .background(Color.LightGray)
                     .clickable(onClick = onComplete)
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
-                Text(text = "미도전", fontSize = 13.sp, color = NotStartedChipTextColor)
+                Text(text = "미 완료", fontSize = 13.sp, color = Color.Gray)
             }
         }
 
@@ -287,6 +375,7 @@ private fun BucketStatusChip(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
                     .background(InProgressChipBackground)
+                    .clickable(onClick = onComplete)
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(text = "도전 중", fontSize = 13.sp, color = InProgressChipTextColor)
