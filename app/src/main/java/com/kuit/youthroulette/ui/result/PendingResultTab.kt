@@ -29,8 +29,12 @@ fun PendingResultTab(
     else{
         LazyColumn(
             modifier=modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentPadding = PaddingValues(
+                start = 24.dp,
+                end = 24.dp,
+                bottom = 24.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(
                 items=results,

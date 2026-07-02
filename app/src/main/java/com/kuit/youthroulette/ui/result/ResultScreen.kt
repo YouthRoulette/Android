@@ -1,7 +1,10 @@
 package com.kuit.youthroulette.ui.result
 
+import android.R.id.tabs
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -14,6 +17,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuit.youthroulette.ui.component.CommonTopBar
@@ -25,8 +30,9 @@ fun ResultScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTabIndex by rememberSaveable{ mutableStateOf(0) }//현재 선택된 탭 번호
-    val tabs=listOf("미완료","인증완료")
+
     Scaffold(
+        containerColor = Color(0xFFFFFBF7),
         topBar = {
             CommonTopBar(
                 title="결과"
@@ -38,21 +44,16 @@ fun ResultScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ){
-            TabRow(
-                selectedTabIndex=selectedTabIndex
-            ){
-                tabs.forEachIndexed{index,title->
-                    Tab(
-                        selected = selectedTabIndex==index,
-                        onClick = {
-                            selectedTabIndex=index
-                        },
-                        text={
-                            Text(text=title)
-                        }
-                    )
+            Spacer(modifier = Modifier.height(20.dp))
+
+            ResultSegmentedTab(
+                selectedTabIndex = selectedTabIndex,
+                onTabSelected = { index ->
+                    selectedTabIndex = index
                 }
-            }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
 
             when (selectedTabIndex){
                 0->PendingResultTab(
