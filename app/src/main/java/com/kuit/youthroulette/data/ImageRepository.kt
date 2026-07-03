@@ -12,11 +12,16 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class ImageRepository {
 
     private val api = ApiClient.api
-    private val okHttpClient = OkHttpClient()
+    private val okHttpClient = OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .build()
 
     suspend fun uploadImageToS3(
         context: Context,
@@ -41,7 +46,7 @@ class ImageRepository {
         val requestBody = imageBytes.toRequestBody(contentType.toMediaTypeOrNull())
 
         val uploadRequest = Request.Builder()
-            .url(presignedBody.presignedUrl)
+            .url(presignedBody.uploadUrl)
             .put(requestBody)
             .addHeader("Content-Type", contentType)
             .build()

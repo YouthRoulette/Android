@@ -12,9 +12,8 @@ class ResultRepository {
     private val api = ApiClient.api
 
     suspend fun getPendingBuckets(): List<PendingBucket> {
-        val buckets = api.getPendingBuckets()
-
-        return emptyList()
+        return api.getPendingBuckets()
+            .map { it.toPendingBucket() }
     }
 
     suspend fun getCompletedPosts(): List<FeedPost> {
@@ -34,11 +33,6 @@ class ResultRepository {
             reviewText = reviewText,
             visibility = visibility,
             friendIds = friendIds.map { it.toLong() }
-        )
-
-        val response = api.createPost(
-            bucketId = bucketId,
-            request = request
         )
 
         api.createPost(

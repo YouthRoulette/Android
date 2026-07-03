@@ -1,6 +1,6 @@
 package com.kuit.youthroulette.data.remote.dto
 
 data class PresignedUrlResponse(
-    val presignedUrl: String,
+    val uploadUrl: String,
     val imageUrl: String
 )

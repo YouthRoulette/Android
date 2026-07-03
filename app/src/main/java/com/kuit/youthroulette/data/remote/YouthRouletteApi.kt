@@ -73,11 +73,14 @@ interface YouthRouletteApi {
     suspend fun rejectFriendRequest(@Path("friendId") friendId: Int): FriendRequestDto
 
     // 미완료 탭: 인증 필요한 버킷 조회
-    @GET("api/buckets/pending")
-    suspend fun getPendingBuckets(): List<BucketDto>
+    @GET("api/buckets")
+    suspend fun getPendingBuckets(
+        @Query("status") status: String = "COMPLETED",
+        @Query("verified") verified: Boolean = false
+    ): List<BucketDto>
 
     // 인증 완료 탭: 완료된 인증/피드 조회
-    @GET("api/posts/completed")
+    @GET("api/posts/me")
     suspend fun getCompletedPosts(): List<PostDto>
 
     // 친구 탭 피드 조회
