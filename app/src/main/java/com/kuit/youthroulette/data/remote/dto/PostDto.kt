@@ -27,3 +27,8 @@ data class LikeResponse(
     val likedByMe: Boolean,
     val likeCount: Int
 )
+
+data class DeletePostResponse(
+    val postId: Int,
+    val message: String? = null
+)

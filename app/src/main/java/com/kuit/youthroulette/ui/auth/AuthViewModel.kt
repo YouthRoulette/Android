@@ -3,7 +3,6 @@ package com.kuit.youthroulette.ui.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kuit.youthroulette.data.AuthRepository
-import com.kuit.youthroulette.data.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,9 +30,8 @@ class AuthViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = false) }
             result.onSuccess {
                 onSuccess()
-            }.onFailure {
-                SessionManager.updateAuth(null, loginId.trim(), nickname.trim())
-                onSuccess()
+            }.onFailure { e ->
+                _uiState.update { it.copy(errorMessage = e.message ?: "회원가입에 실패했어요.") }
             }
         }
     }
@@ -45,9 +43,8 @@ class AuthViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = false) }
             result.onSuccess {
                 onSuccess()
-            }.onFailure {
-                SessionManager.updateAuth(null, loginId.trim(), SessionManager.nickname ?: loginId.trim())
-                onSuccess()
+            }.onFailure { e ->
+                _uiState.update { it.copy(errorMessage = e.message ?: "로그인에 실패했어요.") }
             }
         }
     }

@@ -21,11 +21,6 @@ object SessionManager {
         this.nickname = nickname
     }
 
-    fun bearerToken(): String {
-        val token = accessToken
-        return if (token.isNullOrBlank()) "" else "Bearer $token"
-    }
-
     fun clear() {
         accessToken = null
         loginId = null

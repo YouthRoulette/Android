@@ -75,4 +75,8 @@ class MyPageViewModel : ViewModel() {
             _uiState.update { it.copy(profileEmojiIndex = index) }
         }
     }
+
+    fun logout() {
+        SessionManager.clear()
+    }
 }

@@ -8,18 +8,18 @@ import com.kuit.youthroulette.model.User
 
 object UserRepository {
 
-    private val api = ApiClient.api
+    private val api get() = ApiClient.api
 
     suspend fun getMyInfo(): Result<User> = runCatching {
-        api.getMyInfo(SessionManager.bearerToken()).toUser()
+        api.getMyInfo().toUser()
     }
 
     suspend fun updateNickname(nickname: String): Result<String> = runCatching {
-        api.updateNickname(SessionManager.bearerToken(), NicknameUpdateRequest(nickname)).nickname
+        api.updateNickname(NicknameUpdateRequest(nickname)).nickname
     }
 
     suspend fun updateProfile(emojiIndex: Int, colorIndex: Int): Result<Unit> = runCatching {
-        api.updateProfile(SessionManager.bearerToken(), ProfileUpdateRequest(emojiIndex, colorIndex))
+        api.updateProfile(ProfileUpdateRequest(emojiIndex, colorIndex))
         Unit
     }
 }

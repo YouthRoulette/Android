@@ -45,12 +45,14 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyPageScreen(
+    onLogout: () -> Unit = {},
     viewModel: MyPageViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     var showEmojiSheet by remember { mutableStateOf(false) }
     var showNicknameDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
@@ -95,6 +97,27 @@ fun MyPageScreen(
                     modifier = Modifier.weight(1f)
                 )
             }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .border(1.dp, CardBorderColor, RoundedCornerShape(14.dp))
+                    .clickable { showLogoutDialog = true }
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "로그아웃",
+                    color = MutedText,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 
@@ -125,6 +148,30 @@ fun MyPageScreen(
                 showNicknameDialog = false
             },
             onDismiss = { showNicknameDialog = false }
+        )
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text(text = "로그아웃") },
+            text = { Text(text = "로그아웃 하시겠어요?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        viewModel.logout()
+                        onLogout()
+                    }
+                ) {
+                    Text(text = "로그아웃", color = AccentOrange, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(text = "취소", color = MutedText)
+                }
+            }
         )
     }
 }
@@ -219,6 +266,8 @@ private fun NicknameEditDialog(
 ) {
     var input by remember { mutableStateOf(currentNickname) }
 
+    val isNicknameValid = input.trim().length in 2..20
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = "닉네임 변경") },
@@ -227,6 +276,11 @@ private fun NicknameEditDialog(
                 value = input,
                 onValueChange = { input = it },
                 placeholder = { Text("새로운 닉네임을 입력해주세요") },
+                supportingText = {
+                    if (input.isNotBlank() && !isNicknameValid) {
+                        Text(text = "닉네임은 2~20자여야 해요")
+                    }
+                },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -234,7 +288,7 @@ private fun NicknameEditDialog(
         confirmButton = {
             TextButton(
                 onClick = { onConfirm(input.trim()) },
-                enabled = input.isNotBlank()
+                enabled = isNicknameValid
             ) {
                 Text(text = "변경", color = AccentOrange, fontWeight = FontWeight.Bold)
             }

@@ -11,40 +11,40 @@ import com.kuit.youthroulette.ui.friend.FriendUiModel
 
 object FriendRepository {
 
-    private val api = ApiClient.api
+    private val api get() = ApiClient.api
 
     suspend fun getFriends(): Result<List<FriendUiModel>> = runCatching {
-        api.getFriends(SessionManager.bearerToken()).map { it.toFriendUiModel() }
+        api.getFriends().map { it.toFriendUiModel() }
     }
 
     suspend fun getReceivedRequests(): Result<List<FriendRequestUiModel>> = runCatching {
-        api.getReceivedRequests(SessionManager.bearerToken()).map { it.toFriendRequestUiModel() }
+        api.getReceivedRequests().map { it.toFriendRequestUiModel() }
     }
 
     suspend fun getFeed(): Result<List<FeedUiModel>> = runCatching {
-        api.getFeed(SessionManager.bearerToken()).map { it.toFeedUiModel() }
+        api.getFeed().map { it.toFeedUiModel() }
     }
 
     suspend fun sendRequest(loginId: String): Result<Unit> = runCatching {
-        api.sendFriendRequest(SessionManager.bearerToken(), FriendRequestCreate(loginId))
+        api.sendFriendRequest(FriendRequestCreate(loginId))
         Unit
     }
 
     suspend fun acceptRequest(friendId: Int): Result<Unit> = runCatching {
-        api.acceptFriendRequest(SessionManager.bearerToken(), friendId)
+        api.acceptFriendRequest(friendId)
         Unit
     }
 
     suspend fun rejectRequest(friendId: Int): Result<Unit> = runCatching {
-        api.rejectFriendRequest(SessionManager.bearerToken(), friendId)
+        api.rejectFriendRequest(friendId)
         Unit
     }
 
     suspend fun likePost(postId: Int): Result<Boolean> = runCatching {
-        api.likePost(SessionManager.bearerToken(), postId).likedByMe
+        api.likePost(postId).likedByMe
     }
 
     suspend fun unlikePost(postId: Int): Result<Boolean> = runCatching {
-        api.unlikePost(SessionManager.bearerToken(), postId).likedByMe
+        api.unlikePost(postId).likedByMe
     }
 }
