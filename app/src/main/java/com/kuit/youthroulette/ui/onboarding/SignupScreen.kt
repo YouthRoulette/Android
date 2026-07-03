@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,32 +22,43 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import com.kuit.youthroulette.data.BucketRepository
+import androidx.compose.ui.unit.sp
 import com.kuit.youthroulette.data.UserRepository
 import com.kuit.youthroulette.data.remote.ApiException
 import com.kuit.youthroulette.ui.component.CommonTopBar
 import kotlinx.coroutines.launch
 
 @Composable
-fun OnboardingScreen(
-    onStartClick: () -> Unit,
-    onSignupClick: () -> Unit
+fun SignupScreen(
+    onBackClick: () -> Unit,
+    onSignupComplete: () -> Unit
 ) {
     var id by rememberSaveable { mutableStateOf("") }
+    var nickname by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
-    var isLoggingIn by remember { mutableStateOf(false) }
+    var isSigningUp by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    val isInputValid = id.isNotBlank() && password.isNotBlank() && !isLoggingIn
+    val isInputValid = id.isNotBlank() && nickname.isNotBlank() && password.isNotBlank() && !isSigningUp
 
     Scaffold(
         topBar = {
             CommonTopBar(
-                title = "청춘룰렛"
+                title = "회원가입",
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Text(
+                            text = "‹",
+                            fontSize = 32.sp,
+                            color = Color(0xFF9A8D84)
+                        )
+                    }
+                }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -59,7 +70,7 @@ fun OnboardingScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "아이디와 비밀번호를 입력해주세요")
+            Text(text = "아이디, 닉네임, 비밀번호를 입력해주세요")
 
             OutlinedTextField(
                 value = id,
@@ -73,6 +84,18 @@ fun OnboardingScreen(
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Ascii
                 ),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = nickname,
+                onValueChange = { input -> nickname = input },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                label = {
+                    Text(text = "닉네임")
+                },
                 singleLine = true
             )
 
@@ -94,17 +117,17 @@ fun OnboardingScreen(
 
             Button(
                 onClick = {
-                    isLoggingIn = true
+                    isSigningUp = true
                     coroutineScope.launch {
-                        UserRepository.login(loginId = id, password = password)
+                        UserRepository.signup(loginId = id, nickname = nickname, password = password)
                             .onSuccess {
-                                BucketRepository.fetchBuckets()
-                                onStartClick()
+                                onSignupComplete()
                             }
                             .onFailure { error ->
-                                isLoggingIn = false
+                                isSigningUp = false
                                 val message = if (error is ApiException) {
-                                    error.errorResponse.message
+                                    error.errorResponse.errors?.firstOrNull()?.reason
+                                        ?: error.errorResponse.message
                                 } else {
                                     "네트워크 연결을 확인해주세요."
                                 }
@@ -118,14 +141,7 @@ fun OnboardingScreen(
                 enabled = isInputValid,
                 contentPadding = PaddingValues(16.dp)
             ) {
-                Text(text = "로그인")
-            }
-
-            TextButton(
-                onClick = onSignupClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "회원가입")
+                Text(text = "가입하기")
             }
         }
     }

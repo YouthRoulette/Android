@@ -38,14 +38,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kuit.youthroulette.data.MockData
 import com.kuit.youthroulette.model.BucketItem
-import com.kuit.youthroulette.model.BucketStatus
 import com.kuit.youthroulette.ui.bucket.IconBackgroundPalette
 import kotlinx.coroutines.launch
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.random.Random
 
 private val WheelBorderColor = Color(0xFFFFC98B)
 private val PointerColor = Color(0xFFFF9F5A)
@@ -61,7 +58,9 @@ fun RouletteWheel(
     modifier: Modifier = Modifier,
     hasActiveChallenge: Boolean = false,
     onSpinningChange: (Boolean) -> Unit = {},
-    onResult: (BucketItem) -> Unit = {}
+    onSpin: suspend () -> Result<BucketItem> = { Result.success(items.first()) },
+    onResult: (BucketItem) -> Unit = {},
+    onError: (Throwable) -> Unit = {}
 ) {
     if (items.isEmpty()) return
 
@@ -77,27 +76,31 @@ fun RouletteWheel(
         if (isSpinning || !canSpin) return
         isSpinning = true
         onSpinningChange(true)
-        val targetIndex = Random.nextInt(items.size)
         scope.launch {
-            // 포인터는 12시 방향에 고정되어 있으므로, targetIndex 조각의 중앙이
-            // 그 방향에 오도록 남은 회전각(delta)을 구하고 여러 바퀴를 더해 돌린다.
-            val currentMod = ((rotation.value % 360f) + 360f) % 360f
-            val desiredResidual =
-                ((360f - (sliceAngle * targetIndex + sliceAngle / 2f)) % 360f + 360f) % 360f
-            var delta = desiredResidual - currentMod
-            if (delta <= 0f) delta += 360f
-            val extraSpins = 360f * (5 + Random.nextInt(3))
+            // 당첨 버킷은 서버가 정해서 알려줌. 클라이언트는 현재 화면에 그려진 조각 중
+            // 같은 id를 찾아 그 조각이 포인터(12시 방향)에 오도록 애니메이션만 재생한다.
+            onSpin()
+                .onSuccess { winner ->
+                    val targetIndex = items.indexOfFirst { it.id == winner.id }.coerceAtLeast(0)
+                    val currentMod = ((rotation.value % 360f) + 360f) % 360f
+                    val desiredResidual =
+                        ((360f - (sliceAngle * targetIndex + sliceAngle / 2f)) % 360f + 360f) % 360f
+                    var delta = desiredResidual - currentMod
+                    if (delta <= 0f) delta += 360f
+                    val extraSpins = 360f * (5 + (0..2).random())
 
-            rotation.animateTo(
-                targetValue = rotation.value + delta + extraSpins,
-                animationSpec = tween(
-                    durationMillis = SpinDurationMs,
-                    easing = CubicBezierEasing(0.12f, 0.68f, 0.2f, 1f)
-                )
-            )
+                    rotation.animateTo(
+                        targetValue = rotation.value + delta + extraSpins,
+                        animationSpec = tween(
+                            durationMillis = SpinDurationMs,
+                            easing = CubicBezierEasing(0.12f, 0.68f, 0.2f, 1f)
+                        )
+                    )
+                    onResult(winner)
+                }
+                .onFailure { error -> onError(error) }
             isSpinning = false
             onSpinningChange(false)
-            onResult(items[targetIndex])
         }
     }
 
@@ -240,11 +243,19 @@ private fun BoxScope.CenterStartButton(
     }
 }
 
+// 프리뷰 전용 샘플 데이터
+private val PreviewBucketItems = listOf(
+    BucketItem(id = 1, title = "피크닉 가기", emojiIndex = 0, colorIndex = 1),
+    BucketItem(id = 2, title = "캠핑 가기", emojiIndex = 2, colorIndex = 3),
+    BucketItem(id = 3, title = "한강에서 치맥하기", emojiIndex = 3, colorIndex = 4),
+    BucketItem(id = 4, title = "밤바다 보기", emojiIndex = 4, colorIndex = 5)
+)
+
 @Composable
 @Preview(showBackground = true, name = "여러 개")
 private fun RouletteWheelPreview() {
     RouletteWheel(
-        items = MockData.bucketItems.filter { it.status == BucketStatus.NOT_STARTED },
+        items = PreviewBucketItems,
         modifier = Modifier
             .size(320.dp)
             .padding(16.dp)
@@ -266,7 +277,7 @@ private fun RouletteWheelSingleItemPreview() {
 @Preview(showBackground = true, name = "도전 중 버킷 있음 (스핀 비활성화)")
 private fun RouletteWheelActiveChallengePreview() {
     RouletteWheel(
-        items = MockData.bucketItems.filter { it.status == BucketStatus.NOT_STARTED },
+        items = PreviewBucketItems,
         hasActiveChallenge = true,
         modifier = Modifier
             .size(320.dp)

@@ -14,6 +14,7 @@ import com.kuit.youthroulette.ui.bucket.BucketListScreen
 import com.kuit.youthroulette.ui.friend.FriendScreen
 import com.kuit.youthroulette.ui.mypage.MyPageScreen
 import com.kuit.youthroulette.ui.onboarding.OnboardingScreen
+import com.kuit.youthroulette.ui.onboarding.SignupScreen
 import com.kuit.youthroulette.ui.proof.ProofScreen
 import com.kuit.youthroulette.ui.result.ResultScreen
 import com.kuit.youthroulette.ui.roulette.RouletteScreen
@@ -56,6 +57,20 @@ fun AppNavHost() {
                                 inclusive = true
                             }
                         }
+                    },
+                    onSignupClick = {
+                        navController.navigate(Routes.SIGNUP)
+                    }
+                )
+            }
+
+            composable(Routes.SIGNUP) {
+                SignupScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onSignupComplete = {
+                        navController.popBackStack()
                     }
                 )
             }

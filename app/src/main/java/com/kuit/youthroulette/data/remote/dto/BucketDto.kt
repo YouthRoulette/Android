@@ -3,5 +3,10 @@ package com.kuit.youthroulette.data.remote.dto//서버에서 받은 버킷 JSON�
 data class BucketDto(
     val bucketId: Int,
     val title: String,
-    val status: String? = null
+    val emojiIndex: Int = 0,
+    val colorIndex: Int = 0,
+    val status: String? = null,
+    val createdAt: String? = null,
+    val startedAt: String? = null,
+    val completedAt: String? = null
 )

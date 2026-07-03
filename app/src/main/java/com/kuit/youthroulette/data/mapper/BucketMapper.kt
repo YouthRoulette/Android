@@ -2,19 +2,29 @@ package com.kuit.youthroulette.data.mapper
 //서버 응답 DTO를 기존 앱 모델로 바꾸는 파일,기존 BucketItem, PendingBucket 생성자에 맞춰 수정해야
 import com.kuit.youthroulette.data.remote.dto.BucketDto
 import com.kuit.youthroulette.model.BucketItem
+import com.kuit.youthroulette.model.BucketStatus
 import com.kuit.youthroulette.model.PendingBucket
 
 fun BucketDto.toBucketItem(): BucketItem {
     return BucketItem(
-        bucketId = bucketId,
+        id = bucketId,
         title = title,
-        isCompleted = status == "COMPLETED"
+        status = when (status) {
+            "IN_PROGRESS" -> BucketStatus.IN_PROGRESS
+            "COMPLETED" -> BucketStatus.COMPLETED
+            else -> BucketStatus.NOT_STARTED
+        },
+        emojiIndex = emojiIndex,
+        colorIndex = colorIndex
     )
 }
 
 fun BucketDto.toPendingBucket(): PendingBucket {
     return PendingBucket(
+        id = bucketId,
         bucketId = bucketId,
-        title = title
+        title = title,
+        date = startedAt ?: createdAt.orEmpty(),
+        content = ""
     )
 }

@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,12 +28,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuit.youthroulette.data.BucketRepository
+import com.kuit.youthroulette.data.remote.ApiException
 import com.kuit.youthroulette.model.BucketStatus
 import com.kuit.youthroulette.ui.component.CommonTopBar
+import kotlinx.coroutines.launch
 
 private val SubtitleColor = Color(0xFF9C9C9C)
 private val BannerBackground = Color(0xFFFCEFAE)
 private val BannerTextColor = Color(0xFF7A6A2E)
+
+// 서버 에러 응답은 메시지를, 그 외(네트워크 단절 등)는 안내 문구를 보여줌
+private fun Throwable.toUserMessage(): String = when (this) {
+    is ApiException -> errorResponse.message
+    else -> "네트워크 연결을 확인해주세요."
+}
 
 @Composable
 fun RouletteScreen(
@@ -43,17 +54,27 @@ fun RouletteScreen(
     val hasActiveChallenge = BucketRepository.bucketItems.any { it.status == BucketStatus.IN_PROGRESS }
     var uiState by remember { mutableStateOf(RouletteUiState()) }
     val selectedBucket = uiState.selectedBucket
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
-        topBar = { CommonTopBar(title = "청춘룰렛") }
+        topBar = { CommonTopBar(title = "청춘룰렛") },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         if (selectedBucket != null) {
             RouletteResultCard(
                 bucket = selectedBucket,
                 onStartChallenge = {
-                    BucketRepository.startChallenge(selectedBucket.id)
-                    uiState = RouletteUiState()
-                    onNavigateToBucket()
+                    coroutineScope.launch {
+                        BucketRepository.startChallenge(selectedBucket.id)
+                            .onSuccess {
+                                uiState = RouletteUiState()
+                                onNavigateToBucket()
+                            }
+                            .onFailure { error ->
+                                snackbarHostState.showSnackbar(error.toUserMessage())
+                            }
+                    }
                 },
                 onRespin = { uiState = uiState.copy(selectedBucket = null) },
                 modifier = Modifier
@@ -102,7 +123,11 @@ fun RouletteScreen(
                         modifier = Modifier.fillMaxWidth(),
                         hasActiveChallenge = hasActiveChallenge,
                         onSpinningChange = { spinning -> uiState = uiState.copy(isSpinning = spinning) },
-                        onResult = { selected -> uiState = uiState.copy(selectedBucket = selected) }
+                        onSpin = { BucketRepository.spinRoulette() },
+                        onResult = { selected -> uiState = uiState.copy(selectedBucket = selected) },
+                        onError = { error ->
+                            coroutineScope.launch { snackbarHostState.showSnackbar(error.toUserMessage()) }
+                        }
                     )
                 }
 

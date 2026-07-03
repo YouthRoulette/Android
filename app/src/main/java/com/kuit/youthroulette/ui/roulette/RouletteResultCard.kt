@@ -22,7 +22,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kuit.youthroulette.data.MockData
 import com.kuit.youthroulette.model.BucketItem
 import com.kuit.youthroulette.ui.bucket.EmojiOptions
 import com.kuit.youthroulette.ui.bucket.IconBackgroundPalette
@@ -121,7 +120,7 @@ private fun RouletteResultCardPreview() {
         verticalArrangement = Arrangement.Center
     ) {
         RouletteResultCard(
-            bucket = MockData.bucketItems.first { it.id == 4 },
+            bucket = BucketItem(id = 4, title = "밤바다 보기", emojiIndex = 4, colorIndex = 5),
             onStartChallenge = {},
             onRespin = {}
         )
