@@ -37,6 +37,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuit.youthroulette.ui.component.CommonTopBar
 import kotlinx.coroutines.launch
@@ -48,6 +50,10 @@ fun FriendScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.refresh()
+    }
 
     var selectedTab by rememberSaveable { mutableStateOf(FriendTab.LIST) }
     var showAddSheet by remember { mutableStateOf(false) }

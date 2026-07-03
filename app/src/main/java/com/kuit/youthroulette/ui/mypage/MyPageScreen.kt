@@ -38,6 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuit.youthroulette.ui.component.CommonTopBar
 import kotlinx.coroutines.launch
@@ -49,6 +51,10 @@ fun MyPageScreen(
     viewModel: MyPageViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.loadMyInfo()
+    }
 
     var showEmojiSheet by remember { mutableStateOf(false) }
     var showNicknameDialog by remember { mutableStateOf(false) }

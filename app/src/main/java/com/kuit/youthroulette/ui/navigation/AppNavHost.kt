@@ -4,13 +4,16 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.kuit.youthroulette.data.SessionManager
 import com.kuit.youthroulette.ui.auth.LoginScreen
 import com.kuit.youthroulette.ui.auth.SignUpScreen
 import com.kuit.youthroulette.ui.bucket.BucketListScreen
@@ -27,13 +30,22 @@ fun AppNavHost() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val showBottomBar = currentRoute in listOf(
+    val mainRoutes = listOf(
         Routes.ROULETTE,
         Routes.BUCKET,
         Routes.RESULT,
         Routes.FRIEND,
         Routes.MYPAGE
     )
+
+    val showBottomBar = currentRoute in mainRoutes
+
+    LaunchedEffect(currentRoute) {
+        val route = currentRoute
+        if (route != null && route in mainRoutes) {
+            SessionManager.saveLastRoute(route)
+        }
+    }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -45,9 +57,20 @@ fun AppNavHost() {
             }
         }
     ) { innerPadding ->
+        val startDestination = remember {
+            val destination = when {
+                !SessionManager.hasLaunchedBefore -> Routes.LOGIN
+                SessionManager.isLoggedIn() && SessionManager.lastRoute in mainRoutes -> SessionManager.lastRoute!!
+                SessionManager.isLoggedIn() -> Routes.ROULETTE
+                else -> Routes.LOGIN
+            }
+            SessionManager.markLaunched()
+            destination
+        }
+
         NavHost(
             navController = navController,
-            startDestination = Routes.LOGIN,
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Routes.LOGIN) {
