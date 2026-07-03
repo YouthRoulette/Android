@@ -9,7 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.kuit.youthroulette.ui.bucket.AddBucketScreen
 import com.kuit.youthroulette.ui.bucket.BucketListScreen
 import com.kuit.youthroulette.ui.friend.FriendScreen
 import com.kuit.youthroulette.ui.mypage.MyPageScreen
@@ -75,10 +74,6 @@ fun AppNavHost() {
 
             composable(Routes.BUCKET) {
                 BucketListScreen()
-            }
-
-            composable(Routes.ADD_BUCKET) {
-                AddBucketScreen()
             }
 
             composable(Routes.RESULT) {

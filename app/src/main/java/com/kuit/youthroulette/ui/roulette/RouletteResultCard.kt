@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -82,28 +81,6 @@ fun RouletteResultCard(
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
-
-            if (bucket.content.isNotBlank()) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "\"${bucket.content}\"",
-                    fontSize = 15.sp,
-                    fontStyle = FontStyle.Italic,
-                    color = QuoteColor
-                )
-            }
-
-            if (bucket.category.isNotBlank()) {
-                Spacer(modifier = Modifier.height(14.dp))
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(CategoryChipBackground)
-                        .padding(horizontal = 14.dp, vertical = 6.dp)
-                ) {
-                    Text(text = bucket.category, fontSize = 13.sp, color = CategoryChipTextColor)
-                }
-            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))

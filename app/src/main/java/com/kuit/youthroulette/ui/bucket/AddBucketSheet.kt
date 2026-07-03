@@ -72,7 +72,7 @@ fun AddBucketSheet(
                 .padding(bottom = 32.dp)
         ) {
             Text(
-                text = "버킷 추가하기",
+                text = "버킷 리스트 추가하기",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )

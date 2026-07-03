@@ -205,8 +205,6 @@ fun BucketListScreen() {
                     BucketItem(
                         id = newId,
                         title = title,
-                        content = content,
-                        category = category,
                         emojiIndex = emojiIndex,
                         colorIndex = colorIndex,
                         status = BucketStatus.NOT_STARTED

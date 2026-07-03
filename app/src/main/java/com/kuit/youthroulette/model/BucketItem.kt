@@ -5,10 +5,6 @@ data class BucketItem(
 
     val title: String,
 
-    val content: String = "",
-
-    val category: String = "",
-
     val date: String = "",
 
     val status: BucketStatus = BucketStatus.NOT_STARTED,
