@@ -92,31 +92,6 @@ fun AddBucketSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            Text(text = "내용", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = content,
-                onValueChange = { content = it },
-                placeholder = { Text("버킷에 대한 설명을 입력해주세요 (선택)") },
-                minLines = 2,
-                maxLines = 3,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Text(text = "카테고리", fontSize = 14.sp, fontWeight = FontWeight.Medium)
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                placeholder = { Text("예: 여행 · 힐링 (선택)") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
             Text(text = "이모지 선택", fontSize = 14.sp, fontWeight = FontWeight.Medium)
             Spacer(modifier = Modifier.height(8.dp))
             FlowRow(
