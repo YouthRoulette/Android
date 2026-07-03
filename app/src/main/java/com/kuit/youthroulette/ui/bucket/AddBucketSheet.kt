@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.sp
 private val EmojiSlotBackground = Color(0xFFF4F2EF)
 // 이모지 선택시 테투리 색상
 private val SelectedBorderColor = Color(0xFF2B2B2B)
+// 버킷 이름 최대 글자 수(공백 포함)
+private const val TITLE_MAX_LENGTH = 8
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,10 +48,14 @@ fun AddBucketSheet(
     iconColorPalette: List<Color>,
     emojiOptions: List<String>,
     onDismiss: () -> Unit,
-    onAdd: (title: String, emojiIndex: Int, colorIndex: Int) -> Unit
+    onAdd: (title: String, content: String, category: String, emojiIndex: Int, colorIndex: Int) -> Unit
 ) {
     // 버킷리스트 제목
     var title by remember { mutableStateOf("") }
+    // 버킷리스트 내용
+    var content by remember { mutableStateOf("") }
+    // 버킷리스트 카테고리
+    var category by remember { mutableStateOf("") }
     // 선택한 이모지 위치
     var selectedEmojiIndex by remember { mutableIntStateOf(0) }
     // 선택한 배경 색상 위치
@@ -66,7 +72,7 @@ fun AddBucketSheet(
                 .padding(bottom = 32.dp)
         ) {
             Text(
-                text = "버킷 추가하기",
+                text = "버킷 리스트 추가하기",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -77,8 +83,34 @@ fun AddBucketSheet(
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = title,
-                onValueChange = { title = it },
+                onValueChange = { input -> title = input.take(TITLE_MAX_LENGTH) },
                 placeholder = { Text("버킷 이름을 입력해주세요") },
+                singleLine = true,
+                supportingText = { Text("${title.length}/$TITLE_MAX_LENGTH") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(text = "내용", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = content,
+                onValueChange = { content = it },
+                placeholder = { Text("버킷에 대한 설명을 입력해주세요 (선택)") },
+                minLines = 2,
+                maxLines = 3,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(text = "카테고리", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = category,
+                onValueChange = { category = it },
+                placeholder = { Text("예: 여행 · 힐링 (선택)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -142,7 +174,7 @@ fun AddBucketSheet(
                     .clip(RoundedCornerShape(14.dp))
                     .background(if (canSubmit) iconColorPalette[selectedColorIndex] else Color.LightGray)
                     .clickable(enabled = canSubmit) {
-                        onAdd(title.trim(), selectedEmojiIndex, selectedColorIndex)
+                        onAdd(title.trim(), content.trim(), category.trim(), selectedEmojiIndex, selectedColorIndex)
                     }
                     .padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center
