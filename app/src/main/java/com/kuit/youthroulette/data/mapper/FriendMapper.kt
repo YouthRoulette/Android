@@ -1,12 +1,29 @@
 package com.kuit.youthroulette.data.mapper
-//FriendDto를 기존 Friend 모델로 바꾸는 파일, 기존 Friend 모델 생성자에 맞춰 수정
-import com.kuit.youthroulette.data.remote.dto.FriendDto
-import com.kuit.youthroulette.model.Friend
 
-fun FriendDto.toFriend(): Friend {
-    return Friend(
-        friendId = friendId,
-        nickname = nickname,
-        profileImageUrl = profileImageUrl
+import com.kuit.youthroulette.data.remote.dto.FriendDto
+import com.kuit.youthroulette.data.remote.dto.FriendRequestDto
+import com.kuit.youthroulette.ui.friend.FriendRequestUiModel
+import com.kuit.youthroulette.ui.friend.FriendUiModel
+
+private val avatarEmojis = listOf("🙂", "😎", "🥳", "🐣", "🐱", "🦊", "🌟", "🍀")
+
+internal fun avatarEmojiFor(seed: Int): String {
+    val index = ((seed % avatarEmojis.size) + avatarEmojis.size) % avatarEmojis.size
+    return avatarEmojis[index]
+}
+
+fun FriendDto.toFriendUiModel(): FriendUiModel {
+    return FriendUiModel(
+        id = friendId,
+        name = nickname,
+        avatarEmoji = avatarEmojiFor(userId)
+    )
+}
+
+fun FriendRequestDto.toFriendRequestUiModel(): FriendRequestUiModel {
+    return FriendRequestUiModel(
+        id = friendId,
+        name = requesterNickname,
+        userId = ""
     )
 }

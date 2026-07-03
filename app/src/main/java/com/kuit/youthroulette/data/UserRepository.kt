@@ -1,28 +1,25 @@
 package com.kuit.youthroulette.data
 
+import com.kuit.youthroulette.data.mapper.toUser
+import com.kuit.youthroulette.data.remote.ApiClient
+import com.kuit.youthroulette.data.remote.dto.NicknameUpdateRequest
+import com.kuit.youthroulette.data.remote.dto.ProfileUpdateRequest
 import com.kuit.youthroulette.model.User
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 object UserRepository {
 
-    private val _currentUser = MutableStateFlow<User?>(null)
-    val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
+    private val api = ApiClient.api
 
-    fun saveUser(
-        id: String,
-        nickname: String,
-        profileImageUrl: String? = null
-    ) {
-        _currentUser.value = User(
-            id = id,
-            nickname = nickname,
-            profileImageUrl = profileImageUrl
-        )
+    suspend fun getMyInfo(): Result<User> = runCatching {
+        api.getMyInfo(SessionManager.bearerToken()).toUser()
     }
 
-    fun getCurrentUser(): User? {
-        return _currentUser.value
+    suspend fun updateNickname(nickname: String): Result<String> = runCatching {
+        api.updateNickname(SessionManager.bearerToken(), NicknameUpdateRequest(nickname)).nickname
+    }
+
+    suspend fun updateProfile(emojiIndex: Int, colorIndex: Int): Result<Unit> = runCatching {
+        api.updateProfile(SessionManager.bearerToken(), ProfileUpdateRequest(emojiIndex, colorIndex))
+        Unit
     }
 }

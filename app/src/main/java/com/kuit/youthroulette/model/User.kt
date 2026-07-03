@@ -1,11 +1,11 @@
 package com.kuit.youthroulette.model
 
 data class User(
-
-    val id: String,
-
+    val userId: Int,
+    val loginId: String,
     val nickname: String,
-
-    val profileImageUrl: String? = null
-
+    val emojiIndex: Int,
+    val colorIndex: Int,
+    val challengedCount: Int,
+    val completedCount: Int
 )

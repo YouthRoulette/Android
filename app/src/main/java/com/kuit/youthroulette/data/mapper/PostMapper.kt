@@ -1,15 +1,30 @@
 package com.kuit.youthroulette.data.mapper
-//PostDto를 기존 FeedPost 모델로 바꾸는 파일, 기존 FeedPost 모델 생성자에 맞춰 수정
-import com.kuit.youthroulette.data.remote.dto.PostDto
-import com.kuit.youthroulette.model.FeedPost
 
-fun PostDto.toFeedPost(): FeedPost {
-    return FeedPost(
-        postId = postId,
-        bucketId = bucketId,
-        bucketTitle = bucketTitle,
-        imageUrl = imageUrl,
-        reviewText = reviewText.orEmpty(),
-        visibility = visibility.orEmpty()
+import com.kuit.youthroulette.data.remote.dto.PostDto
+import com.kuit.youthroulette.ui.friend.FeedUiModel
+
+private val bucketEmojis = listOf("🏞️", "🍜", "🏮", "🌊", "🎡", "🧗", "🧳", "✨")
+
+private fun bucketEmojiFor(seed: Int): String {
+    val index = ((seed % bucketEmojis.size) + bucketEmojis.size) % bucketEmojis.size
+    return bucketEmojis[index]
+}
+
+private fun formatTime(createdAt: String?): String {
+    if (createdAt.isNullOrBlank()) return ""
+    return createdAt.take(10)
+}
+
+fun PostDto.toFeedUiModel(): FeedUiModel {
+    val text = reviewText?.takeIf { it.isNotBlank() } ?: bucketTitle
+    return FeedUiModel(
+        id = postId,
+        name = nickname,
+        avatarEmoji = avatarEmojiFor(userId),
+        message = "'$bucketTitle' 완료! $text",
+        time = formatTime(createdAt),
+        likeCount = likeCount,
+        bucketEmoji = bucketEmojiFor(bucketId),
+        isLiked = likedByMe
     )
 }

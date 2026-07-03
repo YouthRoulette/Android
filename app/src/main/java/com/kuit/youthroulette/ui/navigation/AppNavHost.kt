@@ -10,10 +10,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.kuit.youthroulette.ui.auth.LoginScreen
+import com.kuit.youthroulette.ui.auth.SignUpScreen
 import com.kuit.youthroulette.ui.bucket.BucketListScreen
 import com.kuit.youthroulette.ui.friend.FriendScreen
 import com.kuit.youthroulette.ui.mypage.MyPageScreen
-import com.kuit.youthroulette.ui.onboarding.OnboardingScreen
 import com.kuit.youthroulette.ui.proof.ProofScreen
 import com.kuit.youthroulette.ui.result.ResultScreen
 import com.kuit.youthroulette.ui.roulette.RouletteScreen
@@ -45,17 +46,28 @@ fun AppNavHost() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.ONBOARDING,
+            startDestination = Routes.LOGIN,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Routes.ONBOARDING) {
-                OnboardingScreen(
-                    onStartClick = {
+            composable(Routes.LOGIN) {
+                LoginScreen(
+                    onLoginSuccess = {
                         navController.navigate(Routes.ROULETTE) {
-                            popUpTo(Routes.ONBOARDING) {
+                            popUpTo(Routes.LOGIN) {
                                 inclusive = true
                             }
                         }
+                    },
+                    onNavigateToSignUp = {
+                        navController.navigate(Routes.SIGNUP)
+                    }
+                )
+            }
+
+            composable(Routes.SIGNUP) {
+                SignUpScreen(
+                    onSignUpSuccess = {
+                        navController.popBackStack()
                     }
                 )
             }

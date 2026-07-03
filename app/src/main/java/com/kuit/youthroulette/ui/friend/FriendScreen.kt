@@ -118,11 +118,14 @@ fun FriendScreen(
                 }
             },
             onSend = { userId ->
-                Toast.makeText(
-                    context,
-                    "💌 ${userId}님에게 친구 요청을 보냈어요!",
-                    Toast.LENGTH_SHORT
-                ).show()
+                viewModel.sendRequest(userId) { success ->
+                    val message = if (success) {
+                        "💌 ${userId}님에게 친구 요청을 보냈어요!"
+                    } else {
+                        "친구 요청을 보내지 못했어요. 아이디를 확인해주세요."
+                    }
+                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
                 coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
                     if (!sheetState.isVisible) showAddSheet = false
                 }
