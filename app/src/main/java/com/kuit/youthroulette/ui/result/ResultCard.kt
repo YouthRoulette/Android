@@ -132,8 +132,7 @@ private fun CompletedResultCard(
     result: ResultItemUiModel
 ) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
@@ -142,37 +141,44 @@ private fun CompletedResultCard(
             defaultElevation = 0.dp
         )
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = result.title,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Text(
-                text = "인증 완료",
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            if (result.content.isNotBlank()) {
-                Text(
-                    text = "인증 내용: ${result.content}",
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
             result.proofImageUrl?.let { imageUrl ->
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = "인증 사진",
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .padding(top = 8.dp),
+                        .size(110.dp)
+                        .clip(RoundedCornerShape(16.dp)),
                     contentScale = ContentScale.Crop
                 )
+
+                Spacer(modifier = Modifier.width(16.dp))
+            }
+
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = result.title,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2B2B2B)
+                )
+
+                if (result.content.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = result.content,
+                        fontSize = 15.sp,
+                        color = Color(0xFF555555)
+                    )
+                }
             }
         }
     }
