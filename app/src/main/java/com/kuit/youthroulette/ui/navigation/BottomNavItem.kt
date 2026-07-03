@@ -29,7 +29,7 @@ val bottomNavItems = listOf(
     ),
     BottomNavItem(
         route = Routes.MYPAGE,
-        label = "마이",
+        label = "마이페이지",
         iconText = "👤"
     )
 )
