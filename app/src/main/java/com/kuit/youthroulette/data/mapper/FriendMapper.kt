@@ -4,6 +4,7 @@ import com.kuit.youthroulette.data.remote.dto.FriendDto
 import com.kuit.youthroulette.data.remote.dto.FriendRequestDto
 import com.kuit.youthroulette.ui.friend.FriendRequestUiModel
 import com.kuit.youthroulette.ui.friend.FriendUiModel
+import com.kuit.youthroulette.ui.mypage.profileEmojiOptions
 
 private val avatarEmojis = listOf("🙂", "😎", "🥳", "🐣", "🐱", "🦊", "🌟", "🍀")
 
@@ -12,11 +13,18 @@ internal fun avatarEmojiFor(seed: Int): String {
     return avatarEmojis[index]
 }
 
+internal fun profileEmojiFor(emojiIndex: Int?, fallbackSeed: Int): String {
+    if (emojiIndex != null && emojiIndex in profileEmojiOptions.indices) {
+        return profileEmojiOptions[emojiIndex]
+    }
+    return avatarEmojiFor(fallbackSeed)
+}
+
 fun FriendDto.toFriendUiModel(): FriendUiModel {
     return FriendUiModel(
         id = friendId,
         name = nickname,
-        avatarEmoji = avatarEmojiFor(userId)
+        avatarEmoji = profileEmojiFor(emojiIndex, userId)
     )
 }
 

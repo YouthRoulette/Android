@@ -20,7 +20,7 @@ fun PostDto.toFeedUiModel(): FeedUiModel {
     return FeedUiModel(
         id = postId,
         name = nickname,
-        avatarEmoji = avatarEmojiFor(userId),
+        avatarEmoji = profileEmojiFor(emojiIndex, userId),
         message = "'$bucketTitle' 완료! $text",
         time = formatTime(createdAt),
         likeCount = likeCount,

@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -87,21 +88,25 @@ fun FriendScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (uiState.pendingRequests.isNotEmpty()) {
-                FriendRequestBanner(
-                    request = uiState.pendingRequests.first(),
-                    onAccept = { request ->
-                        viewModel.acceptRequest(request)
-                        Toast.makeText(
-                            context,
-                            "🎉 ${request.name}님과 친구가 됐어요!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    },
-                    onReject = { request ->
-                        viewModel.rejectRequest(request)
-                        Toast.makeText(context, "친구 요청을 거절했어요.", Toast.LENGTH_SHORT).show()
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    uiState.pendingRequests.forEach { request ->
+                        FriendRequestBanner(
+                            request = request,
+                            onAccept = { req ->
+                                viewModel.acceptRequest(req)
+                                Toast.makeText(
+                                    context,
+                                    "🎉 ${req.name}님과 친구가 됐어요!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            onReject = { req ->
+                                viewModel.rejectRequest(req)
+                                Toast.makeText(context, "친구 요청을 거절했어요.", Toast.LENGTH_SHORT).show()
+                            }
+                        )
                     }
-                )
+                }
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
@@ -279,7 +284,7 @@ private fun AddFriendSheet(
             OutlinedTextField(
                 value = inputId,
                 onValueChange = { inputId = it.removePrefix("@") },
-                placeholder = { Text("예: youth_friend") },
+                placeholder = { Text("예: youth_friend", color = Color.Gray) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )

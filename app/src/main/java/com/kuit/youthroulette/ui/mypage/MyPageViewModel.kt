@@ -1,12 +1,9 @@
 package com.kuit.youthroulette.ui.mypage
 
-import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.kuit.youthroulette.data.BucketRepository
 import com.kuit.youthroulette.data.SessionManager
 import com.kuit.youthroulette.data.UserRepository
-import com.kuit.youthroulette.model.BucketStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +22,6 @@ class MyPageViewModel : ViewModel() {
 
     init {
         loadMyInfo()
-        observeBucketCounts()
     }
 
     fun loadMyInfo() {
@@ -36,25 +32,12 @@ class MyPageViewModel : ViewModel() {
                         nickname = user.nickname,
                         userId = user.loginId,
                         profileEmojiIndex = user.emojiIndex.coerceIn(0, profileEmojiOptions.lastIndex),
-                        profileColorIndex = user.colorIndex
+                        profileColorIndex = user.colorIndex,
+                        challengedCount = user.challengedCount,
+                        completedCount = user.completedCount
                     )
                 }
                 SessionManager.updateAuth(null, user.loginId, user.nickname)
-            }
-        }
-    }
-
-    private fun observeBucketCounts() {
-        viewModelScope.launch {
-            snapshotFlow {
-                val items = BucketRepository.bucketItems
-                val challenged = items.count {
-                    it.status == BucketStatus.IN_PROGRESS || it.status == BucketStatus.COMPLETED
-                }
-                val completed = items.count { it.status == BucketStatus.COMPLETED }
-                challenged to completed
-            }.collect { (challenged, completed) ->
-                _uiState.update { it.copy(challengedCount = challenged, completedCount = completed) }
             }
         }
     }

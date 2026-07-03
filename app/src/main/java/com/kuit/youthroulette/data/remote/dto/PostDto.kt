@@ -9,6 +9,8 @@ data class PostDto(
     val postId: Int,
     val userId: Int,
     val nickname: String,
+    val emojiIndex: Int? = null,
+    val colorIndex: Int? = null,
     val bucketId: Int,
     val bucketTitle: String,
     val imageUrl: String? = null,
