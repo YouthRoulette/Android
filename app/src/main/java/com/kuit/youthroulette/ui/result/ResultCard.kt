@@ -2,13 +2,18 @@ package com.kuit.youthroulette.ui.result
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 
 @Composable
 fun ResultCard(
@@ -39,9 +44,14 @@ fun ResultCard(
                 }
 
                 result.proofImageUrl?.let { imageUrl ->
-                    Text(
-                        text = "인증 사진: $imageUrl",
-                        modifier = Modifier.padding(top = 8.dp)
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = "인증 사진",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .padding(top = 8.dp),
+                        contentScale = ContentScale.Crop
                     )
                 }
             } else {
