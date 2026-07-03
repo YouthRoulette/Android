@@ -23,7 +23,7 @@ fun PendingResultTab(
             modifier=modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ){
-            Text(text="아직 도전 중인 버킷이 없어요. 룰렛을 돌려 오늘의 도전을 시작해보세요!")
+            Text(text="아직 완료한 버킷이 없어요.")
         }
     }
     else{

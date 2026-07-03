@@ -16,7 +16,7 @@ fun CompletedResultTab(
     modifier:Modifier= Modifier
 ){
     if(results.isEmpty()){
-        Text(text="아직 완료한 버킷이 없어요")
+        Text(text="아직 인증한 버킷이 없어요")
     }
     else{
         LazyColumn(
