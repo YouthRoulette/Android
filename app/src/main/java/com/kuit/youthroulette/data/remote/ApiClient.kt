@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    private const val BASE_URL = "https://strung-frostbite-poster.ngrok-free.dev/"
-
+//    private const val BASE_URL = "https://strung-frostbite-poster.ngrok-free.dev/"
+    private const val BASE_URL = "http://54.180.101.8:8080/"
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
