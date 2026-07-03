@@ -29,6 +29,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuit.youthroulette.ui.component.CommonTopBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+
 @Composable
 fun ProofScreen(
     bucketId: Int,
@@ -86,19 +89,13 @@ fun ProofScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             ImageUploadBox(
+                imageUri = uiState.selectedImageUri,
                 onClick = {
                     imagePickerLauncher.launch("image/*")
                 }
             )
 
-            if (uiState.selectedImageUri != null) {
-                Spacer(modifier = Modifier.height(8.dp))
 
-                Text(
-                    text = "이미지가 선택되었습니다.",
-                    color = Color(0xFF8B6F5A)
-                )
-            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
