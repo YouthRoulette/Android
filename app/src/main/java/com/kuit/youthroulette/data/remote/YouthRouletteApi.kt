@@ -26,6 +26,7 @@ interface YouthRouletteApi {
     @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
+    // ========= 룰렛 & 버킷 =========
     // 내 버킷 목록 조회
     @GET("api/buckets")
     suspend fun getBuckets(
