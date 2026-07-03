@@ -235,7 +235,7 @@ private fun BoxScope.CenterStartButton(
                     isSpinning -> "돌아가는 중"
                     else -> "눌러서 돌리기"
                 },
-                color = Color.White,
+                color = Color.Black,
                 fontSize = 10.sp,
                 textAlign = TextAlign.Center
             )
