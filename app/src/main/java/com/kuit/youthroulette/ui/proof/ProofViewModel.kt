@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class ProofViewModel : ViewModel() {
 
-    private val friendRepository = FriendRepository()
+    private val friendRepository = FriendRepository
     private val resultRepository = ResultRepository()
     private val imageRepository = ImageRepository()
 
@@ -36,7 +36,8 @@ class ProofViewModel : ViewModel() {
             }
 
             try {
-                val friends = friendRepository.getFriends()
+                val friends = FriendRepository.getFriendsForProof()
+                    .getOrElse { emptyList() }
 
                 _uiState.update {
                     it.copy(

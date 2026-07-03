@@ -12,27 +12,14 @@ class ResultRepository {
     private val api = ApiClient.api
 
     suspend fun getPendingBuckets(): List<PendingBucket> {
-        val response = api.getPendingBuckets()
-
-        if (response.isSuccessful) {
-            return response.body()
-                ?.map { it.toPendingBucket() }
-                ?: emptyList()
-        }
+        val buckets = api.getPendingBuckets()
 
         return emptyList()
     }
 
     suspend fun getCompletedPosts(): List<FeedPost> {
-        val response = api.getCompletedPosts()
-
-        if (response.isSuccessful) {
-            return response.body()
-                ?.map { it.toFeedPost() }
-                ?: emptyList()
-        }
-
-        return emptyList()
+        return api.getCompletedPosts()
+            .map { it.toFeedPost() }
     }
 
     suspend fun createPost(
@@ -46,7 +33,7 @@ class ResultRepository {
             imageUrl = imageUrl,
             reviewText = reviewText,
             visibility = visibility,
-            friendIds = friendIds
+            friendIds = friendIds.map { it.toLong() }
         )
 
         val response = api.createPost(
@@ -54,6 +41,11 @@ class ResultRepository {
             request = request
         )
 
-        return response.isSuccessful
+        api.createPost(
+            bucketId = bucketId,
+            request = request
+        )
+
+        return true
     }
 }

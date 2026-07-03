@@ -27,19 +27,12 @@ class ImageRepository {
         val contentType = contentResolver.getType(imageUri) ?: "image/jpeg"
         val fileName = getFileName(context, imageUri) ?: "bucket-proof.jpg"
 
-        val presignedResponse = api.getPresignedUrl(
-            PresignedUrlRequest(
+        val presignedBody = api.getPresignedUrl(
+            request = PresignedUrlRequest(
                 fileName = fileName,
                 contentType = contentType
             )
         )
-
-        if (!presignedResponse.isSuccessful) {
-            throw IOException("Presigned URL 발급 실패: ${presignedResponse.code()}")
-        }
-
-        val presignedBody = presignedResponse.body()
-            ?: throw IOException("Presigned URL 응답이 비어 있습니다.")
 
         val imageBytes = contentResolver.openInputStream(imageUri)?.use {
             it.readBytes()
