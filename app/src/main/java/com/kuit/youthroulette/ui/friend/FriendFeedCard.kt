@@ -19,9 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 
 @Composable
 fun FriendFeedCard(
@@ -89,7 +91,16 @@ fun FriendFeedCard(
                 .background(thumbColor),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = feed.bucketEmoji, fontSize = 24.sp)
+            if (feed.imageUrl != null) {
+                AsyncImage(
+                    model = feed.imageUrl,
+                    contentDescription = "${feed.name}의 인증 사진",
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(text = feed.bucketEmoji, fontSize = 24.sp)
+            }
         }
     }
 }

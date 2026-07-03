@@ -41,6 +41,7 @@ fun PostDto.toFeedUiModel(): FeedUiModel {
         time = formatTime(createdAt),
         likeCount = likeCount,
         bucketEmoji = bucketEmojiFor(bucketId),
+        imageUrl = imageUrl,
         isLiked = likedByMe
     )
 }

@@ -36,6 +36,7 @@ data class FeedUiModel(
     val time: String,
     val likeCount: Int,
     val bucketEmoji: String,
+    val imageUrl: String? = null,
     val isLiked: Boolean = false
 )
 
