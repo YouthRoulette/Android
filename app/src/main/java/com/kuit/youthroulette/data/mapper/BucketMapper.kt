@@ -23,7 +23,8 @@ fun BucketDto.toPendingBucket(): PendingBucket {
         date = startedAt ?: createdAt.orEmpty(),
         content = "",
         taggedFriendNames = emptyList(),
-        category = ""
+        category = "",
+        emojiIndex = emojiIndex
     )
 }
 

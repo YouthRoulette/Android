@@ -1,5 +1,6 @@
 package com.kuit.youthroulette.ui.result
 
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,35 +15,37 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PendingResultTab(
-    results:List<ResultItemUiModel>,
-    onProofClick:(Int)->Unit,
-    modifier:Modifier= Modifier
-){
-    if(results.isEmpty()){
+    results: List<ResultItemUiModel>,
+    onProofClick: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if (results.isEmpty()) {
         Box(
-            modifier=modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
-        ){
-            Text(text="아직 완료한 버킷이 없어요.")
+        ) {
+            Text(text = "아직 인증할 버킷이 없어요.")
         }
-    }
-    else{
+    } else {
         LazyColumn(
-            modifier=modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = 24.dp,
                 end = 24.dp,
+                top = 8.dp,
                 bottom = 24.dp
             ),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(
-                items=results,
-                key={result->result.bucketId}
-            ){result->
+                items = results,
+                key = { result -> result.bucketId }
+            ) { result ->
                 ResultCard(
-                    result=result,
-                    onProofClick={onProofClick(result.bucketId)}
+                    result = result,
+                    onProofClick = {
+                        onProofClick(result.bucketId)
+                    }
                 )
             }
         }

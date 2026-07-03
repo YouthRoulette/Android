@@ -10,5 +10,6 @@ data class ResultItemUiModel(
     val title: String,
     val isCompleted: Boolean = false,
     val content: String = "",
-    val proofImageUrl: String? = null
+    val proofImageUrl: String? = null,
+    val emojiIndex: Int = 0
 )

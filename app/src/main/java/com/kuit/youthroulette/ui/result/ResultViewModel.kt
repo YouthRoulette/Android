@@ -59,7 +59,8 @@ private fun PendingBucket.toResultItemUiModel(): ResultItemUiModel {
         title = title,
         isCompleted = false,
         content = content,
-        proofImageUrl = null
+        proofImageUrl = null,
+        emojiIndex = emojiIndex
     )
 }
 
