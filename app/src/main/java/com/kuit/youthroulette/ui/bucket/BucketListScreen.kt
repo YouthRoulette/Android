@@ -138,8 +138,10 @@ fun BucketListScreen() {
     val inProgressCount = bucketItems.count { it.status == BucketStatus.IN_PROGRESS }
     // 완료 갯수
     val completedCount = bucketItems.count { it.status == BucketStatus.COMPLETED }
-    // 서버는 상태와 무관하게 전체 버킷 개수를 최대 8개로 제한하므로, 추가 가능 여부도 전체 개수로 판단한다
-    val isBucketLimitReached = bucketItems.size >= ROULETTE_SLOT_CAPACITY
+    // 미 완료 개수가 8개면 추가를 막는다
+    // 주의: 서버는 실제로 상태 무관 전체 개수를 8개로 제한하고 있어서, 완료/도전 중 버킷이 섞여있으면
+    // 이 조건이 false여도(미 완료 < 8) 서버가 거부할 수 있다. 그 경우엔 추가 실패 스낵바로 안내된다.
+    val isBucketLimitReached = notStartedCount >= ROULETTE_SLOT_CAPACITY
     // 선택된 탭의 아이템들
     val filteredItems = when (selectedFilter) {
         BucketFilter.NOT_STARTED -> bucketItems.filter { it.status == BucketStatus.NOT_STARTED }
@@ -178,8 +180,8 @@ fun BucketListScreen() {
                     .padding(innerPadding)
                     .padding(horizontal = 24.dp, vertical = 24.dp)
             ) {
-                // 전체 버킷 개수(최대 8개)를 알려주는 배너
-                BucketCapacityBanner(totalCount = bucketItems.size)
+                // 미 완료 버킷 개수(최대 8개)를 알려주는 배너
+                BucketCapacityBanner(notStartedCount = notStartedCount)
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -212,10 +214,17 @@ fun BucketListScreen() {
                                 }
                             },
                             onIncomplete = {
-                                // 상태만 바뀔 뿐 전체 개수는 그대로라, 8개 제한과는 무관하게 항상 허용된다
-                                coroutineScope.launch {
-                                    BucketRepository.incompleteBucket(item.id).onFailure { error ->
-                                        snackbarHostState.showSnackbar(error.toUserMessage())
+                                // 미완료 처리는 항상 상태를 "미 완료"로 되돌리므로, 이미 미 완료가 8개면
+                                // (9개가 되어버리는 걸 막기 위해) 서버 호출 없이 바로 막는다
+                                if (notStartedCount >= ROULETTE_SLOT_CAPACITY) {
+                                    coroutineScope.launch {
+                                        snackbarHostState.showSnackbar("미 완료 버킷은 최대 ${ROULETTE_SLOT_CAPACITY}개까지 가능해요")
+                                    }
+                                } else {
+                                    coroutineScope.launch {
+                                        BucketRepository.incompleteBucket(item.id).onFailure { error ->
+                                            snackbarHostState.showSnackbar(error.toUserMessage())
+                                        }
                                     }
                                 }
                             },
@@ -279,10 +288,9 @@ private fun AddBucketAction(
     }
 }
 
-// 서버는 상태(미 완료/도전 중/완료)와 무관하게 전체 버킷 개수를 최대 8개로 제한한다
 @Composable
-private fun BucketCapacityBanner(totalCount: Int) {
-    val cappedCount = totalCount.coerceAtMost(ROULETTE_SLOT_CAPACITY)
+private fun BucketCapacityBanner(notStartedCount: Int) {
+    val cappedCount = notStartedCount.coerceAtMost(ROULETTE_SLOT_CAPACITY)
     val statusMessage = if (cappedCount >= ROULETTE_SLOT_CAPACITY) {
         "가득 찼어요"
     } else {
@@ -298,7 +306,7 @@ private fun BucketCapacityBanner(totalCount: Int) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "버킷 ",
+                text = "미 완료 버킷 ",
                 fontSize = 14.sp,
                 color = BannerTextColor
             )
