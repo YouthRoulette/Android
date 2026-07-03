@@ -39,7 +39,7 @@ private val BannerTextColor = Color(0xFF7A6A2E)
 
 // 서버 에러 응답은 메시지를, 그 외(네트워크 단절 등)는 안내 문구를 보여줌
 private fun Throwable.toUserMessage(): String = when (this) {
-    is ApiException -> errorResponse.message
+    is ApiException -> errorResponse.message ?: "요청을 처리하지 못했습니다."
     else -> "네트워크 연결을 확인해주세요."
 }
 
