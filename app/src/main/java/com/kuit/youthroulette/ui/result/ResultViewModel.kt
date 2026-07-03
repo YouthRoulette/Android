@@ -18,11 +18,9 @@ class ResultViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ResultUiState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        loadResults()
-    }
 
-    private fun loadResults() {
+
+    fun loadResults() {
         viewModelScope.launch {
             try {
                 val pendingBuckets = resultRepository.getPendingBuckets()

@@ -11,6 +11,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,7 +31,9 @@ fun ResultScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var selectedTabIndex by rememberSaveable{ mutableStateOf(0) }//현재 선택된 탭 번호
-
+    LaunchedEffect(Unit) {
+        viewModel.loadResults()
+    }
     Scaffold(
         containerColor = Color(0xFFFFFBF7),
         topBar = {
