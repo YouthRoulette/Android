@@ -1,6 +1,5 @@
 package com.kuit.youthroulette.data.remote
-
-import YouthRouletteApi
+//Retrofit 객체를 만드는 파일
 import com.kuit.youthroulette.data.SessionManager
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit

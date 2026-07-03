@@ -9,7 +9,9 @@ fun BucketDto.toBucketItem(): BucketItem {
     return BucketItem(
         id = bucketId,
         title = title,
-        status = status.toBucketStatus()
+        status = status.toBucketStatus(),
+        emojiIndex = emojiIndex,
+        colorIndex = colorIndex
     )
 }
 
@@ -18,7 +20,7 @@ fun BucketDto.toPendingBucket(): PendingBucket {
         id = bucketId,
         bucketId = bucketId,
         title = title,
-        date = "",
+        date = startedAt ?: createdAt.orEmpty(),
         content = "",
         taggedFriendNames = emptyList(),
         category = ""

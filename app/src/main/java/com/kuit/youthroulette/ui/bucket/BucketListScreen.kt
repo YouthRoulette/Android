@@ -18,8 +18,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -42,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kuit.youthroulette.data.BucketRepository
+import com.kuit.youthroulette.data.remote.ApiException
 import com.kuit.youthroulette.model.BucketItem
 import com.kuit.youthroulette.model.BucketStatus
 import com.kuit.youthroulette.ui.component.CommonTopBar
@@ -86,7 +90,7 @@ val IconBackgroundPalette = listOf(
 
 // 버킷리스트 아이콘 이모지(인덱스로 불러옴)
 val EmojiOptions = listOf(
-    "🧺", "🌅", "⛺", "🍗", "🌊", "🪂", "🎒", "🌌"
+    "🧺", "🌅", "⛺", "🍗", "🌊", "🪂", "🎒", "🌌", "⛰", "✨", "🎸"
 )
 // 최대 가능한 미 완료 버킷리스트 갯수
 private const val ROULETTE_SLOT_CAPACITY = 8
@@ -96,6 +100,12 @@ private enum class BucketFilter(val label: String) {
     NOT_STARTED("미 완료"),
     IN_PROGRESS("도전 중"),
     COMPLETED("완료")
+}
+
+// 서버 에러 응답은 필드 에러 메시지를, 그 외(네트워크 단절 등)는 안내 문구를 보여줌
+private fun Throwable.toUserMessage(): String = when (this) {
+    is ApiException -> errorResponse.errors?.firstOrNull()?.reason ?: errorResponse.message
+    else -> "네트워크 연결을 확인해주세요."
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,6 +120,15 @@ fun BucketListScreen() {
     // 추가 sheet 상태
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+    var isLoading by remember { mutableStateOf(true) }
+
+    // 화면 진입 시 서버에서 최신 버킷 목록을 불러옴
+    LaunchedEffect(Unit) {
+        BucketRepository.fetchBuckets()
+            .onFailure { error -> snackbarHostState.showSnackbar(error.toUserMessage()) }
+        isLoading = false
+    }
 
     // 미 완료 갯수
     val notStartedCount = bucketItems.count { it.status == BucketStatus.NOT_STARTED }
@@ -117,8 +136,8 @@ fun BucketListScreen() {
     val inProgressCount = bucketItems.count { it.status == BucketStatus.IN_PROGRESS }
     // 완료 갯수
     val completedCount = bucketItems.count { it.status == BucketStatus.COMPLETED }
-    // 남은 미 완료 갯수가 max값을 넘어서는지 아닌지
-    val isNotStartedFull = notStartedCount >= ROULETTE_SLOT_CAPACITY
+    // 서버는 상태와 무관하게 전체 버킷 개수를 최대 8개로 제한하므로, 추가 가능 여부도 전체 개수로 판단한다
+    val isBucketLimitReached = bucketItems.size >= ROULETTE_SLOT_CAPACITY
     // 선택된 탭의 아이템들
     val filteredItems = when (selectedFilter) {
         BucketFilter.NOT_STARTED -> bucketItems.filter { it.status == BucketStatus.NOT_STARTED }
@@ -133,55 +152,76 @@ fun BucketListScreen() {
                 actions = {
                     // 버킷리스트 추가 버튼
                     AddBucketAction(
-                        enabled = !isNotStartedFull,
+                        enabled = !isBucketLimitReached,
                         onClick = { showAddSheet = true }
                     )
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 24.dp)
-        ) {
-            // 미 완료 버킷을 알려주는 배너
-            NotStartedBanner(notStartedCount = notStartedCount)
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 버킷리스트 필터 탭
-            BucketFilterTabs(
-                selectedFilter = selectedFilter,
-                notStartedCount = notStartedCount,
-                inProgressCount = inProgressCount,
-                completedCount = completedCount,
-                onSelect = { selectedFilter = it }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 선택된 탭의 버킷리스트를 보여줌
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                contentAlignment = Alignment.Center
             ) {
-                items(filteredItems, key = { it.id }) { item ->
-                    // 완료된 버킷은 스와이프로 삭제할 수 없고, 미 완료/도전 중 버킷만 오른쪽으로 밀어서 삭제할 수 있다
-                    if (item.status == BucketStatus.COMPLETED) {
-                        BucketListItem(
-                            item = item,
-                            emoji = EmojiOptions[item.emojiIndex % EmojiOptions.size],
-                            iconBackgroundColor = IconBackgroundPalette[item.colorIndex % IconBackgroundPalette.size],
-                            onComplete = { BucketRepository.complete(item.id) }
-                        )
-                    } else {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 24.dp, vertical = 24.dp)
+            ) {
+                // 전체 버킷 개수(최대 8개)를 알려주는 배너
+                BucketCapacityBanner(totalCount = bucketItems.size)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 버킷리스트 필터 탭
+                BucketFilterTabs(
+                    selectedFilter = selectedFilter,
+                    notStartedCount = notStartedCount,
+                    inProgressCount = inProgressCount,
+                    completedCount = completedCount,
+                    onSelect = { selectedFilter = it }
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 선택된 탭의 버킷리스트를 보여줌
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(filteredItems, key = { it.id }) { item ->
+                        // 모든 상태의 버킷을 오른쪽으로 밀어서 삭제할 수 있다
                         DeletableBucketListItem(
                             item = item,
                             emoji = EmojiOptions[item.emojiIndex % EmojiOptions.size],
                             iconBackgroundColor = IconBackgroundPalette[item.colorIndex % IconBackgroundPalette.size],
-                            onComplete = { BucketRepository.complete(item.id) },
-                            onDelete = { BucketRepository.delete(item.id) }
+                            onComplete = {
+                                coroutineScope.launch {
+                                    BucketRepository.complete(item.id).onFailure { error ->
+                                        snackbarHostState.showSnackbar(error.toUserMessage())
+                                    }
+                                }
+                            },
+                            onIncomplete = {
+                                // 상태만 바뀔 뿐 전체 개수는 그대로라, 8개 제한과는 무관하게 항상 허용된다
+                                coroutineScope.launch {
+                                    BucketRepository.incompleteBucket(item.id).onFailure { error ->
+                                        snackbarHostState.showSnackbar(error.toUserMessage())
+                                    }
+                                }
+                            },
+                            onDelete = {
+                                BucketRepository.deleteBucket(item.id).onFailure { error ->
+                                    snackbarHostState.showSnackbar(error.toUserMessage())
+                                }
+                            }
                         )
                     }
                 }
@@ -200,18 +240,15 @@ fun BucketListScreen() {
                 }
             },
             onAdd = { title, content, category, emojiIndex, colorIndex ->
-                val newId = (bucketItems.maxOfOrNull { it.id } ?: 0) + 1
-                BucketRepository.add(
-                    BucketItem(
-                        id = newId,
-                        title = title,
-                        emojiIndex = emojiIndex,
-                        colorIndex = colorIndex,
-                        status = BucketStatus.NOT_STARTED
-                    )
-                )
-                coroutineScope.launch { sheetState.hide() }.invokeOnCompletion {
-                    if (!sheetState.isVisible) showAddSheet = false
+                coroutineScope.launch {
+                    BucketRepository.createBucket(title, emojiIndex, colorIndex)
+                        .onSuccess {
+                            sheetState.hide()
+                            showAddSheet = false
+                        }
+                        .onFailure { error ->
+                            snackbarHostState.showSnackbar(error.toUserMessage())
+                        }
                 }
             }
         )
@@ -240,9 +277,10 @@ private fun AddBucketAction(
     }
 }
 
+// 서버는 상태(미 완료/도전 중/완료)와 무관하게 전체 버킷 개수를 최대 8개로 제한한다
 @Composable
-private fun NotStartedBanner(notStartedCount: Int) {
-    val cappedCount = notStartedCount.coerceAtMost(ROULETTE_SLOT_CAPACITY)
+private fun BucketCapacityBanner(totalCount: Int) {
+    val cappedCount = totalCount.coerceAtMost(ROULETTE_SLOT_CAPACITY)
     val statusMessage = if (cappedCount >= ROULETTE_SLOT_CAPACITY) {
         "가득 찼어요"
     } else {
@@ -258,7 +296,7 @@ private fun NotStartedBanner(notStartedCount: Int) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "미 완료 버킷 ",
+                text = "버킷 ",
                 fontSize = 14.sp,
                 color = BannerTextColor
             )
@@ -325,14 +363,16 @@ private fun DeletableBucketListItem(
     item: BucketItem,
     emoji: String,
     iconBackgroundColor: Color,
-    onComplete: () -> Unit,
-    onDelete: () -> Unit
+    onComplete: () -> Unit = {},
+    onIncomplete: () -> Unit = {},
+    onDelete: suspend () -> Result<Unit>
 ) {
     val dismissState = rememberSwipeToDismissBoxState()
 
     LaunchedEffect(dismissState.currentValue) {
         if (dismissState.currentValue == SwipeToDismissBoxValue.StartToEnd) {
-            onDelete()
+            // 서버 삭제가 실패하면 스와이프를 원래 위치로 되돌림
+            onDelete().onFailure { dismissState.reset() }
         }
     }
 
@@ -357,7 +397,8 @@ private fun DeletableBucketListItem(
             item = item,
             emoji = emoji,
             iconBackgroundColor = iconBackgroundColor,
-            onComplete = onComplete
+            onComplete = onComplete,
+            onIncomplete = onIncomplete
         )
     }
 }
@@ -367,7 +408,8 @@ private fun BucketListItem(
     item: BucketItem,
     emoji: String,
     iconBackgroundColor: Color,
-    onComplete: () -> Unit
+    onComplete: () -> Unit = {},
+    onIncomplete: () -> Unit = {}
 ) {
     val background = when (item.status) {
         BucketStatus.NOT_STARTED -> Color.White
@@ -408,14 +450,15 @@ private fun BucketListItem(
             modifier = Modifier.weight(1f)
         )
 
-        BucketStatusChip(status = item.status, onComplete = onComplete)
+        BucketStatusChip(status = item.status, onComplete = onComplete, onIncomplete = onIncomplete)
     }
 }
 
 @Composable
 private fun BucketStatusChip(
     status: BucketStatus,
-    onComplete: () -> Unit
+    onComplete: () -> Unit,
+    onIncomplete: () -> Unit = {}
 ) {
     when (status) {
         BucketStatus.NOT_STARTED -> {
@@ -447,6 +490,7 @@ private fun BucketStatusChip(
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
                     .background(CompletedChipBackground)
+                    .clickable(onClick = onIncomplete)
                     .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(text = "완료", fontSize = 13.sp, color = CompletedChipTextColor)
