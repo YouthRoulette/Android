@@ -12,6 +12,10 @@ object BucketRepository {
         bucketItems.add(item)
     }
 
+    fun delete(id: Int) {
+        bucketItems.removeAll { it.id == id }
+    }
+
     fun complete(id: Int) {
         updateStatus(id, BucketStatus.COMPLETED)
     }

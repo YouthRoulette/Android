@@ -20,9 +20,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +67,10 @@ private val InProgressChipTextColor = Color(0xFF7A4B24)
 // 완료 색상(배경, 글씨)
 private val CompletedChipBackground = Color(0xFFBFEACB)
 private val CompletedChipTextColor = Color(0xFF25793D)
+
+// 스와이프 삭제 배경 색상(배경, 글씨)
+private val DeleteBackground = Color(0xFFF7C9C2)
+private val DeleteTextColor = Color(0xFFB33B2E)
 
 // 버킷리스트 아이콘 색상(인덱스로 불러옴)
 val IconBackgroundPalette = listOf(
@@ -159,12 +167,23 @@ fun BucketListScreen() {
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(filteredItems, key = { it.id }) { item ->
-                    BucketListItem(
-                        item = item,
-                        emoji = EmojiOptions[item.emojiIndex % EmojiOptions.size],
-                        iconBackgroundColor = IconBackgroundPalette[item.colorIndex % IconBackgroundPalette.size],
-                        onComplete = { BucketRepository.complete(item.id) }
-                    )
+                    // 완료된 버킷은 스와이프로 삭제할 수 없고, 미 완료/도전 중 버킷만 오른쪽으로 밀어서 삭제할 수 있다
+                    if (item.status == BucketStatus.COMPLETED) {
+                        BucketListItem(
+                            item = item,
+                            emoji = EmojiOptions[item.emojiIndex % EmojiOptions.size],
+                            iconBackgroundColor = IconBackgroundPalette[item.colorIndex % IconBackgroundPalette.size],
+                            onComplete = { BucketRepository.complete(item.id) }
+                        )
+                    } else {
+                        DeletableBucketListItem(
+                            item = item,
+                            emoji = EmojiOptions[item.emojiIndex % EmojiOptions.size],
+                            iconBackgroundColor = IconBackgroundPalette[item.colorIndex % IconBackgroundPalette.size],
+                            onComplete = { BucketRepository.complete(item.id) },
+                            onDelete = { BucketRepository.delete(item.id) }
+                        )
+                    }
                 }
             }
         }
@@ -180,12 +199,14 @@ fun BucketListScreen() {
                     if (!sheetState.isVisible) showAddSheet = false
                 }
             },
-            onAdd = { title, emojiIndex, colorIndex ->
+            onAdd = { title, content, category, emojiIndex, colorIndex ->
                 val newId = (bucketItems.maxOfOrNull { it.id } ?: 0) + 1
                 BucketRepository.add(
                     BucketItem(
                         id = newId,
                         title = title,
+                        content = content,
+                        category = category,
                         emojiIndex = emojiIndex,
                         colorIndex = colorIndex,
                         status = BucketStatus.NOT_STARTED
@@ -297,6 +318,49 @@ private fun BucketFilterTabs(
                 )
             }
         }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DeletableBucketListItem(
+    item: BucketItem,
+    emoji: String,
+    iconBackgroundColor: Color,
+    onComplete: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val dismissState = rememberSwipeToDismissBoxState()
+
+    LaunchedEffect(dismissState.currentValue) {
+        if (dismissState.currentValue == SwipeToDismissBoxValue.StartToEnd) {
+            onDelete()
+        }
+    }
+
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = false,
+        backgroundContent = {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(DeleteBackground)
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Text(text = "삭제", color = DeleteTextColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+        }
+    ) {
+        BucketListItem(
+            item = item,
+            emoji = emoji,
+            iconBackgroundColor = iconBackgroundColor,
+            onComplete = onComplete
+        )
     }
 }
 
