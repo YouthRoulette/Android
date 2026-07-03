@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -94,12 +95,12 @@ fun MyPageScreen(
             ) {
                 StatCard(
                     value = uiState.challengedCount.toString(),
-                    label = "도전한 버킷",
+                    label = "지금까지\n도전한 버킷",
                     modifier = Modifier.weight(1f)
                 )
                 StatCard(
                     value = uiState.completedCount.toString(),
-                    label = "완료한 버킷",
+                    label = "지금까지\n완료한 버킷",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -203,7 +204,7 @@ private fun StatCard(
             color = StatValueColor
         )
         Spacer(modifier = Modifier.height(6.dp))
-        Text(text = label, fontSize = 13.sp, color = MutedText)
+        Text(text = label, fontSize = 13.sp, color = MutedText, textAlign = TextAlign.Center)
     }
 }
 

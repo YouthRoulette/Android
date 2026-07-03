@@ -38,7 +38,7 @@ fun ResultCard(
 
                 if (result.content.isNotBlank()) {
                     Text(
-                        text = result.content,
+                        text = "인증 내용: ${result.content}",
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }

@@ -24,7 +24,7 @@ fun ResultSegmentedTab(
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val tabs = listOf("미완료", "인증 완료")
+    val tabs = listOf("미인증", "인증 완료")
 
     Row(
         modifier = modifier

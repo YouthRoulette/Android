@@ -1,5 +1,6 @@
 package com.kuit.youthroulette.ui.mypage
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kuit.youthroulette.data.SessionManager
@@ -26,19 +27,25 @@ class MyPageViewModel : ViewModel() {
 
     fun loadMyInfo() {
         viewModelScope.launch {
-            UserRepository.getMyInfo().onSuccess { user ->
-                _uiState.update {
-                    it.copy(
-                        nickname = user.nickname,
-                        userId = user.loginId,
-                        profileEmojiIndex = user.emojiIndex.coerceIn(0, profileEmojiOptions.lastIndex),
-                        profileColorIndex = user.colorIndex,
-                        challengedCount = user.challengedCount,
-                        completedCount = user.completedCount
-                    )
+            UserRepository.getMyInfo()
+                .onSuccess { user ->
+                    Log.d("MyPageViewModel", "getMyInfo: challengedCount=${user.challengedCount}, completedCount=${user.completedCount}")
+                    _uiState.update {
+                        it.copy(
+                            nickname = user.nickname,
+                            userId = user.loginId,
+                            profileEmojiIndex = user.emojiIndex.coerceIn(0, profileEmojiOptions.lastIndex),
+                            profileColorIndex = user.colorIndex,
+                            challengedCount = user.challengedCount,
+                            completedCount = user.completedCount
+                        )
+                    }
+                    SessionManager.updateAuth(null, user.loginId, user.nickname)
                 }
-                SessionManager.updateAuth(null, user.loginId, user.nickname)
-            }
+                .onFailure { error ->
+                    // 실패 시 이전 값을 그대로 유지하면 "숫자가 실제 데이터와 안 맞는" 것처럼 보일 수 있어 로그로 남김
+                    Log.e("MyPageViewModel", "getMyInfo failed, keeping stale counts", error)
+                }
         }
     }
 
