@@ -1,7 +1,7 @@
 package com.kuit.youthroulette.ui.proof
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,39 +9,49 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.kuit.youthroulette.ui.component.CommonTopBar
-
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 @Composable
 fun ProofScreen(
-    bucketId:Int,
-    onBackClick:()->Unit,
-    onProofComplete:()->Unit,
-    viewModel: ProofViewModel=viewModel()
+    bucketId: Int,
+    onBackClick: () -> Unit,
+    onProofComplete: () -> Unit,
+    viewModel: ProofViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        viewModel.updateSelectedImage(uri)
+    }
+
+    LaunchedEffect(uiState.submitSuccess) {
+        if (uiState.submitSuccess) {
+            onBackClick()
+        }
+    }
 
     Scaffold(
-        containerColor = Color.White,
         topBar = {
             CommonTopBar(
                 title = "완료 인증하기",
@@ -49,67 +59,79 @@ fun ProofScreen(
                     IconButton(
                         onClick = onBackClick
                     ) {
-                        Text(
-                            text = "‹",
-                            fontSize = 32.sp,
-                            color = Color(0xFF9A8D84)
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "뒤로가기"
                         )
                     }
                 }
             )
         }
-    ) {innerPadding->
+    ) { innerPadding ->
+
         Column(
-            modifier=Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp)
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState())
-        ){
-            Spacer(modifier= Modifier.height(32.dp))
-            ImageUploadBox(
-                onClick=viewModel::onImageUploadClick
-            )
-
-            Spacer(modifier= Modifier.height(24.dp))
+        ) {
+            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "한 줄 소감을 남겨주세요!",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2B2724)
+                text = "인증 사진",
+                color = Color.Black
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ImageUploadBox(
+                onClick = {
+                    imagePickerLauncher.launch("image/*")
+                }
+            )
+
+            if (uiState.selectedImageUri != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "이미지가 선택되었습니다.",
+                    color = Color(0xFF8B6F5A)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "인증 내용",
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = uiState.content,
                 onValueChange = viewModel::updateContent,
                 placeholder = {
                     Text(
-                        text = "오늘의 도전 기록을 남겨보세요 :)",
+                        text = "오늘의 인증 내용을 작성해주세요",
                         color = Color(0xFFAAA2A0)
                     )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(88.dp),
-                shape = RoundedCornerShape(16.dp),
-                keyboardOptions = KeyboardOptions(
-                    capitalization = KeyboardCapitalization.Sentences
-                )
+                    .height(140.dp),
+                singleLine = false
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "공개 여부 선택",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2B2724)
+                text = "공개 범위",
+                color = Color.Black
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             VisibilitySelector(
                 isPublic = uiState.isPublic,
@@ -124,44 +146,58 @@ fun ProofScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "친구 태그 (선택)",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2B2724)
+                text = "친구 태그",
+                color = Color.Black
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             FriendTagSelector(
                 friendTagText = uiState.friendTagText,
-                onFriendTagTextChange = viewModel::updateFriendTagText
+                friends = uiState.friends,
+                selectedFriendIds = uiState.selectedFriendIds,
+                onFriendTagTextChange = viewModel::updateFriendTagText,
+                onFriendClick = viewModel::toggleFriendSelection
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = uiState.errorMessage ?: "",
+                    color = Color.Red
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
-                    viewModel.submitProof(bucketId)
-                    onProofComplete()
+                    viewModel.submitProof(
+                        bucketId = bucketId,
+                        context = context
+                    )
                 },
+                enabled = !uiState.isSubmitting,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(72.dp),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                    .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFF2B487)
+                    containerColor = Color(0xFF8B6F5A),
+                    disabledContainerColor = Color(0xFFD0C2B8)
                 )
             ) {
                 Text(
-                    text = "완료 인증하기",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+                    text = if (uiState.isSubmitting) {
+                        "전송 중..."
+                    } else {
+                        "인증 완료하기"
+                    },
                     color = Color.White
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
-

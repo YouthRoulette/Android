@@ -2,6 +2,7 @@ package com.kuit.youthroulette.data.mapper
 
 import com.kuit.youthroulette.data.remote.dto.FriendDto
 import com.kuit.youthroulette.data.remote.dto.FriendRequestDto
+import com.kuit.youthroulette.model.Friend
 import com.kuit.youthroulette.ui.friend.FriendRequestUiModel
 import com.kuit.youthroulette.ui.friend.FriendUiModel
 import com.kuit.youthroulette.ui.mypage.profileEmojiOptions
@@ -25,6 +26,13 @@ fun FriendDto.toFriendUiModel(): FriendUiModel {
         id = friendId,
         name = nickname,
         avatarEmoji = profileEmojiFor(emojiIndex, userId)
+    )
+}
+
+fun FriendDto.toFriend(): Friend {
+    return Friend(
+        id = friendId,
+        name = nickname
     )
 }
 

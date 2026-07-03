@@ -1,10 +1,12 @@
 package com.kuit.youthroulette.data
 
 import com.kuit.youthroulette.data.mapper.toFeedUiModel
+import com.kuit.youthroulette.data.mapper.toFriend
 import com.kuit.youthroulette.data.mapper.toFriendRequestUiModel
 import com.kuit.youthroulette.data.mapper.toFriendUiModel
 import com.kuit.youthroulette.data.remote.ApiClient
 import com.kuit.youthroulette.data.remote.dto.FriendRequestCreate
+import com.kuit.youthroulette.model.Friend
 import com.kuit.youthroulette.ui.friend.FeedUiModel
 import com.kuit.youthroulette.ui.friend.FriendRequestUiModel
 import com.kuit.youthroulette.ui.friend.FriendUiModel
@@ -13,8 +15,14 @@ object FriendRepository {
 
     private val api get() = ApiClient.api
 
+    // 친구 탭에서 사용하는 친구 목록
     suspend fun getFriends(): Result<List<FriendUiModel>> = runCatching {
         api.getFriends().map { it.toFriendUiModel() }
+    }
+
+    // 인증 화면 친구 태그에서 사용하는 친구 목록
+    suspend fun getFriendsForProof(): Result<List<Friend>> = runCatching {
+        api.getFriends().map { it.toFriend() }
     }
 
     suspend fun getReceivedRequests(): Result<List<FriendRequestUiModel>> = runCatching {
